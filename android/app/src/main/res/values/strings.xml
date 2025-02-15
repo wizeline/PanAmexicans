@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">PanAmexicans</string>
+    <string name="app_logo">App logo</string>
+    <string name="login">Login</string>
+    <string name="email">Email</string>
+    <string name="invalid_email">Invalid email</string>
+    <string name="create_an_account">Create an account</string>
+    <string name="dont_have_account_yet">Don\'t have an account yet</string>
+    <string name="sign_in">Sign in</string>
+    <string name="forgot_password">Forgot password</string>
+    <string name="password">Password</string>
+    <string name="register">Register</string>
+    <string name="invalid_password">Invalid password</string>
+    <string name="home">Home</string>
+    <string name="voice_recognition">Voice Recognition</string>
+    <string name="icon_updater">Icon Updater</string>
+    <string name="widget">Widget</string>
+    <string name="crash_detector">Crash Detector</string>
+    <string name="route_calculator">Route Calculator</string>
+    <string name="ridesessions">RideSessions</string>
+</resources>
