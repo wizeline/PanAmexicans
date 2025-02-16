@@ -32,7 +32,11 @@ import com.wizeline.panamexicans.presentation.theme.DarkBlue
 import com.wizeline.panamexicans.presentation.theme.PanAmexicansTheme
 
 @Composable
-fun RegisterRoot(mainNavController: NavController, loginNavController: NavController, viewModel: RegisterViewModel) {
+fun RegisterRoot(
+    mainNavController: NavController,
+    loginNavController: NavController,
+    viewModel: RegisterViewModel
+) {
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(viewModel.uiAction) {
@@ -71,6 +75,46 @@ fun RegisterScreen(
             .background(MaterialTheme.colorScheme.background),
         verticalArrangement = Arrangement.Center
     ) {
+        Spacer(modifier = Modifier.height(16.dp))
+        OutlinedTextField(
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.colors().copy(
+                focusedIndicatorColor = DarkBlue,
+                focusedLabelColor = DarkBlue,
+                unfocusedLabelColor = Color.Black,
+                unfocusedContainerColor = MaterialTheme.colorScheme.background,
+                focusedContainerColor = MaterialTheme.colorScheme.background
+            ),
+            value = uiState.name,
+            label = {
+                Text(
+                    text = stringResource(R.string.name).uppercase(),
+                )
+            },
+            singleLine = true,
+            onValueChange = { name ->
+                onEvent(RegisterUiEvents.OnNameChanged(name))
+            })
+        Spacer(modifier = Modifier.height(16.dp))
+        OutlinedTextField(
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.colors().copy(
+                focusedIndicatorColor = DarkBlue,
+                focusedLabelColor = DarkBlue,
+                unfocusedLabelColor = Color.Black,
+                unfocusedContainerColor = MaterialTheme.colorScheme.background,
+                focusedContainerColor = MaterialTheme.colorScheme.background
+            ),
+            value = uiState.lastName,
+            label = {
+                Text(
+                    text = stringResource(R.string.last_name).uppercase(),
+                )
+            },
+            singleLine = true,
+            onValueChange = { lastName ->
+                onEvent(RegisterUiEvents.OnLastNameChanged(lastName))
+            })
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),

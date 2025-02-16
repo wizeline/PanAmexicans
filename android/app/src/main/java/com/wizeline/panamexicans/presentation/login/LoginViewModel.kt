@@ -3,7 +3,7 @@ package com.wizeline.panamexicans.presentation.login
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.wizeline.panamexicans.authentication.Authentication
+import com.wizeline.panamexicans.data.authentication.Authentication
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow

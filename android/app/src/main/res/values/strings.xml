@@ -18,4 +18,7 @@
     <string name="crash_detector">Crash Detector</string>
     <string name="route_calculator">Route Calculator</string>
     <string name="ridesessions">RideSessions</string>
+    <string name="name">Name</string>
+    <string name="invalid_name">Name field is required</string>
+    <string name="last_name">Lastname</string>
 </resources>

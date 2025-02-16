@@ -1,8 +1,10 @@
 package com.wizeline.panamexicans.presentation.login
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.wizeline.panamexicans.authentication.Authentication
+import com.google.firebase.firestore.FirebaseFirestore
+import com.wizeline.panamexicans.data.authentication.Authentication
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.math.log
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(val authentication: Authentication) : ViewModel() {
@@ -24,6 +27,14 @@ class RegisterViewModel @Inject constructor(val authentication: Authentication) 
         when (event) {
             is RegisterUiEvents.OnEmailChanged -> {
                 _uiState.update { it.copy(email = event.email) }
+            }
+
+            is RegisterUiEvents.OnNameChanged -> {
+                _uiState.update { it.copy(name = event.name) }
+            }
+
+            is RegisterUiEvents.OnLastNameChanged -> {
+                _uiState.update { it.copy(lastName = event.lastName) }
             }
 
             is RegisterUiEvents.OnPasswordChanged -> {
@@ -42,7 +53,12 @@ class RegisterViewModel @Inject constructor(val authentication: Authentication) 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                authentication.createAccount(email, password)
+                authentication.createAccount(
+                    email,
+                    password,
+                    _uiState.value.name,
+                    _uiState.value.lastName
+                )
                 _uiAction.emit(RegisterUiAction.OnAccountCreated)
             } catch (ex: Exception) {
                 _uiAction.emit(RegisterUiAction.OnAccountCreationFailed(ex.localizedMessage.orEmpty()))
@@ -55,16 +71,25 @@ class RegisterViewModel @Inject constructor(val authentication: Authentication) 
 
 data class RegisterUiState(
     val isLoading: Boolean = false,
+    val invalidName: Boolean = false,
     val invalidEmail: Boolean = false,
+    val invalidLastName: Boolean = false,
+    val name: String = "",
     val email: String = "",
-    val password: String = ""
+    val password: String = "",
+    val lastName: String = "",
 ) {
     val createAccountEnabled: Boolean
-        get() = email.isNotBlank() && password.isNotBlank()
+        get() = name.isNotBlank()
+                && lastName.isNotBlank()
+                && email.isNotBlank()
+                && password.isNotBlank()
 }
 
 sealed interface RegisterUiEvents {
     data class OnEmailChanged(val email: String) : RegisterUiEvents
+    data class OnNameChanged(val name: String) : RegisterUiEvents
+    data class OnLastNameChanged(val lastName: String) : RegisterUiEvents
     data class OnPasswordChanged(val password: String) : RegisterUiEvents
     data class OnCreateAccountClicked(val email: String, val password: String) : RegisterUiEvents
 }

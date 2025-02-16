@@ -2,7 +2,7 @@ package com.wizeline.panamexicans.presentation.splash
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.wizeline.panamexicans.authentication.Authentication
+import com.wizeline.panamexicans.data.authentication.Authentication
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
