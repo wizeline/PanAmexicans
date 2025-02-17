@@ -22,7 +22,7 @@ struct IconChangerView: View {
     }
 
     private func changeAppIcon() {
-        let iconName: String? = UIApplication.shared.alternateIconName == "purple" ? nil : "purple"
+        let iconName: String? = UIApplication.shared.alternateIconName == "AppIconPremium" ? nil : "AppIconPremium"
 
         UIApplication.shared.setAlternateIconName(iconName) { error in
             if let error {
