@@ -18,11 +18,21 @@
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="splash" translatesAutoresizingMaskIntoConstraints="NO" id="U95-5S-VO3">
                                 <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                             </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="PanAmexicans" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="KSZ-AM-jsI">
+                                <rect key="frame" x="46" y="334" width="301" height="56"/>
+                                <fontDescription key="fontDescription" name="DINAlternate-Bold" family="DIN Alternate" pointSize="48"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                                <size key="shadowOffset" width="0.0" height="0.0"/>
+                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Bcu-3y-fUS"/>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
+                            <constraint firstItem="Bcu-3y-fUS" firstAttribute="trailing" secondItem="KSZ-AM-jsI" secondAttribute="trailing" constant="46" id="8v9-YP-wfP"/>
+                            <constraint firstItem="KSZ-AM-jsI" firstAttribute="centerY" secondItem="U95-5S-VO3" secondAttribute="centerY" multiplier="0.85" id="Akb-LV-0nq"/>
                             <constraint firstItem="U95-5S-VO3" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" id="GxH-gn-Z4a"/>
+                            <constraint firstItem="KSZ-AM-jsI" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" constant="46" id="TkN-XT-vc6"/>
                             <constraint firstItem="U95-5S-VO3" firstAttribute="trailing" secondItem="Bcu-3y-fUS" secondAttribute="trailing" id="Yl3-eU-K78"/>
                             <constraint firstItem="U95-5S-VO3" firstAttribute="top" secondItem="Ze5-6b-2t3" secondAttribute="top" id="dcE-hf-bQB"/>
                             <constraint firstAttribute="bottom" secondItem="U95-5S-VO3" secondAttribute="bottom" id="fs4-4d-Yzl"/>
