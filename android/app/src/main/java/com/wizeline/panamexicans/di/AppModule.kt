@@ -8,8 +8,11 @@ import com.wizeline.panamexicans.data.authentication.Authentication
 import com.wizeline.panamexicans.data.authentication.FirebaseAuthenticationImpl
 import com.wizeline.panamexicans.data.ridesessions.RideSessionRepository
 import com.wizeline.panamexicans.data.ridesessions.RideSessionRepositoryImpl
+import com.wizeline.panamexicans.data.subscription.SubscriptionManager
+import com.wizeline.panamexicans.data.subscription.SubscriptionManagerImpl
 import com.wizeline.panamexicans.data.userdata.UserDataRepository
 import com.wizeline.panamexicans.data.userdata.UserDataRepositoryImpl
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -36,4 +39,5 @@ object AppModule {
     @Provides
     fun providesUserDataRepository(): UserDataRepository =
         UserDataRepositoryImpl(providesFirebaseAuthentication(), providesFirebaseDb())
+
 }
