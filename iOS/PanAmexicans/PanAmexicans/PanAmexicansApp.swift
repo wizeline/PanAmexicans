@@ -22,20 +22,28 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 struct PanAmexicansApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject var sessionManager = SessionManager()
-    @State private var user: PMUser?
+    @State private var isLoading: Bool = true
 
     var body: some Scene {
         WindowGroup {
             Group {
-                if sessionManager.isUserLoggedIn {
-                    HomeView()
+                if isLoading {
+                    ProgressView()
+                        .progressViewStyle(.circular)
                 } else {
-                    LoginView()
+                    Group {
+                        if sessionManager.isUserLoggedIn {
+                            HomeView()
+                        } else {
+                            LoginView()
+                        }
+                    }
+                    .environmentObject(sessionManager)
                 }
             }
-            .environmentObject(sessionManager)
-            .onAppear {
-                sessionManager.setUserIfNeeded()
+            .task { @MainActor in
+                await sessionManager.setUserIfNeeded()
+                isLoading = false
             }
         }
     }

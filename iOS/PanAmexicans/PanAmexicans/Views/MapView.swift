@@ -10,6 +10,7 @@ import MapKit
 import SwiftUI
 
 struct MapView: View {
+    @EnvironmentObject var sessionManager: SessionManager
     @StateObject var manager = LocationManager()
     @State private var selection: MapFeature?
     @State private var mapCameraPosition: MapCameraPosition = .automatic
@@ -20,6 +21,17 @@ struct MapView: View {
             if let route {
                 MapPolyline(route)
                     .stroke(.blue, lineWidth: 5)
+            }
+
+            ForEach(sessionManager.rideSessionUsers, id: \.id) { user in
+                Marker(
+                    coordinate: CLLocationCoordinate2D(
+                        latitude: user.lat,
+                        longitude: user.lon
+                    )
+                ) {
+                    Text(user.firstName)
+                }
             }
         }
         .mapStyle(.standard(elevation: .realistic, pointsOfInterest: .all))

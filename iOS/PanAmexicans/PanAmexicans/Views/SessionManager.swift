@@ -5,83 +5,151 @@
 //  Created by Karen Gonzalez Velazquez on 16/02/25.
 //
 
-import FirebaseAuth
+import Foundation
 
 final class SessionManager: ObservableObject {
-    @Published var user: PMUser?
+    @Published var userData: UserData?
     @Published var alertError: String?
+    @Published var currentSession: RideSession?
+    @Published var rideSessions: [RideSession] = []
+    @Published var rideSessionUsers: [UserStatus] = []
 
     var isUserLoggedIn: Bool {
-        user != nil
+        userData != nil
     }
 
-    private let firebaseAuth = Auth.auth()
-    private let db = Firestore.firestore()
+    private let authenticationRepository = AuthenticationRepository()
+    private let rideSessionRepository = RideSessionRepository()
 
-    func setUserIfNeeded() {
+    init() {
+        rideSessionRepository
+            .$rideSessionUsers
+              .assign(to: &$rideSessionUsers)
+    }
+
+    @MainActor
+    func setUserIfNeeded() async {
         guard !isUserLoggedIn else { return }
-        user = firebaseAuth.currentUser
-    }
-    
-    func createAccount(email: String, password: String) {
-        firebaseAuth.createUser(withEmail: email, password: password) { [weak self] authResult, error in
-            guard let self else { return }
+        userData = try? await authenticationRepository.getCurrentUserData()
 
-            guard let authResult else {
-                alertError = error?.localizedDescription
-                return
-            }
-
-            addUser(UserData(email: email, firstName: "Karen", lastName: "Dev"))
-            self.user = authResult.user
+        if let currentSession = await rideSessionRepository.getCurrentSession(),
+           let sessionId = currentSession.id {
+            self.rideSessionRepository.startRideSessionListener(for: sessionId)
+            self.currentSession = currentSession
         }
     }
 
-    func signIn(email: String, password: String) {
-        firebaseAuth.signIn(withEmail: email, password: password) { [weak self] authResult, error in
-            guard let self else { return }
+    @MainActor
+    func createAccount(
+        name: String,
+        lastName: String,
+        email: String,
+        password: String
+    ) async {
+        do {
+            let userData = try await authenticationRepository.createAccount(
+                name: name,
+                lastName: lastName,
+                email: email,
+                password: password
+            )
 
-            guard let authResult else {
-                alertError = error?.localizedDescription
-                return
-            }
+            self.userData = userData
+        } catch {
+            alertError = error.localizedDescription
+        }
+    }
 
-            self.user = authResult.user
+    @MainActor
+    func signIn(email: String, password: String) async {
+        do {
+            let userData = try await authenticationRepository.signIn(email: email, password: password)
+            self.userData = userData
+        } catch {
+            alertError = error.localizedDescription
         }
     }
 
     func signOut() {
+        authenticationRepository.signOut()
+    }
+
+    @MainActor
+    func createAndJoinRideSession(latitude: Double, longitude: Double) async {
+        guard let userData else { return }
+
         do {
-            try firebaseAuth.signOut()
-            user = nil
+            let session = try await rideSessionRepository.createAndJoinRideSession(
+                displayName: "\(userData.firstName)'s Ride Session",
+                userStatus: UserStatus(
+                    id: userData.id,
+                    firstName: userData.firstName,
+                    lastName: userData.lastName,
+                    lat: latitude,
+                    lon: longitude,
+                    status: RideSessionStatus.RIDING.rawValue
+                )
+            )
+
+            if let sessionId = session.id {
+                rideSessionRepository.startRideSessionListener(for: sessionId)
+            }
+
+            currentSession = session
         } catch {
             print(error.localizedDescription)
         }
     }
 
-    func addUser(_ user: UserData) {
-        let collection = db.collection(Collection.USERS.rawValue)
+    func update(latitude: Double, longitude: Double) async {
+        guard let sessionId = currentSession?.id else { return }
+
+        try? await rideSessionRepository.updateRideSession(
+            sessionId,
+            update: UserStatusUpdate(lat: latitude, lon: longitude)
+        )
+    }
+
+    @MainActor
+    func leaveRideSession() async {
+        guard let sessionId = currentSession?.id else { return }
 
         do {
-            let newUser = try collection.addDocument(from: user)
-            print("User stored with new document reference: \(newUser)")
-        }
-        catch {
-            print(error)
+            try await rideSessionRepository.leaveRideSession(sessionId)
+            currentSession = nil
+        } catch {
+            print(error.localizedDescription)
         }
     }
-}
 
-enum Collection: String {
-    case RIDE_SESSIONS, USERS
-}
+    @MainActor
+    func joinSession(_ session: RideSession, latitude: Double, longitude: Double) async {
+        guard let userData, let sessionId = session.id else { return }
 
-import FirebaseFirestore
+        do {
+            let userStatus = UserStatus(
+                id: userData.id,
+                firstName: userData.firstName,
+                lastName: userData.lastName,
+                lat: latitude,
+                lon: longitude,
+                status: RideSessionStatus.RIDING.rawValue
+            )
 
-struct UserData: Codable {
-    @DocumentID var id: String?
-    var email: String?
-    var firstName: String?
-    var lastName: String?
-    var photoUrl: String?
+            try await rideSessionRepository.joinSession(sessionId, userStatus: userStatus)
+            rideSessionRepository.startRideSessionListener(for: sessionId)
+            currentSession = session
+        } catch {
+            print(error.localizedDescription)
+        }
+    }
+
+    @MainActor
+    func getRideSessions() async {
+        do {
+            rideSessions = try await rideSessionRepository.getRideSessions()
+        } catch {
+            print(error.localizedDescription)
+        }
+    }
 }

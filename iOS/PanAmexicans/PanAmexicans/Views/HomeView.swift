@@ -13,6 +13,10 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             TabView {
+                Tab("Sessions", systemImage: "person") {
+                    SessionsView()
+                }
+
                 Tab("Map", systemImage: "map") {
                     MapView()
                 }
