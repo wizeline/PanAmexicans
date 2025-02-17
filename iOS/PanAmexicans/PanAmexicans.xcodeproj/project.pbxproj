@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		8A0FCD412D5AF9050034D7B9 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 8A0FCD402D5AF9050034D7B9 /* FirebaseAnalytics */; };
 		8A0FCD482D5AFD0A0034D7B9 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 8A0FCD472D5AFD0A0034D7B9 /* FirebaseAuth */; };
+		8AEB27B42D62C4B0007CCCE4 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 8AEB27B32D62C4B0007CCCE4 /* FirebaseFirestore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +31,7 @@
 			files = (
 				8A0FCD482D5AFD0A0034D7B9 /* FirebaseAuth in Frameworks */,
 				8A0FCD412D5AF9050034D7B9 /* FirebaseAnalytics in Frameworks */,
+				8AEB27B42D62C4B0007CCCE4 /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -82,6 +84,7 @@
 			packageProductDependencies = (
 				8A0FCD402D5AF9050034D7B9 /* FirebaseAnalytics */,
 				8A0FCD472D5AFD0A0034D7B9 /* FirebaseAuth */,
+				8AEB27B32D62C4B0007CCCE4 /* FirebaseFirestore */,
 			);
 			productName = PanAmexicans;
 			productReference = 8A0FCD2E2D5AF7D60034D7B9 /* PanAmexicans.app */;
@@ -372,6 +375,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 8A0FCD3F2D5AF9050034D7B9 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAuth;
+		};
+		8AEB27B32D62C4B0007CCCE4 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8A0FCD3F2D5AF9050034D7B9 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

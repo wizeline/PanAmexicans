@@ -16,6 +16,7 @@ final class SessionManager: ObservableObject {
     }
 
     private let firebaseAuth = Auth.auth()
+    private let db = Firestore.firestore()
 
     func setUserIfNeeded() {
         guard !isUserLoggedIn else { return }
@@ -30,7 +31,8 @@ final class SessionManager: ObservableObject {
                 alertError = error?.localizedDescription
                 return
             }
-            
+
+            addUser(UserData(email: email, firstName: "Karen", lastName: "Dev"))
             self.user = authResult.user
         }
     }
@@ -56,4 +58,30 @@ final class SessionManager: ObservableObject {
             print(error.localizedDescription)
         }
     }
+
+    func addUser(_ user: UserData) {
+        let collection = db.collection(Collection.USERS.rawValue)
+
+        do {
+            let newUser = try collection.addDocument(from: user)
+            print("User stored with new document reference: \(newUser)")
+        }
+        catch {
+            print(error)
+        }
+    }
+}
+
+enum Collection: String {
+    case RIDE_SESSIONS, USERS
+}
+
+import FirebaseFirestore
+
+struct UserData: Codable {
+    @DocumentID var id: String?
+    var email: String?
+    var firstName: String?
+    var lastName: String?
+    var photoUrl: String?
 }
