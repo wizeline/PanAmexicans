@@ -64,9 +64,5 @@ fun HomeNavHost(
             val viewModel: RideSessionsViewModel = hiltViewModel()
             RideSessionsRoot(navController, viewModel)
         }
-        composable(HomeNavRoute.Main.name) {
-            val viewModel: MainViewModel = hiltViewModel()
-            MainRoot(navController, viewModel)
-        }
     }
 }

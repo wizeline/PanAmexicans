@@ -18,6 +18,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import org.intellij.lang.annotations.PrintFormat
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -36,6 +37,7 @@ object AppModule {
     fun providesFirebaseDb(): FirebaseFirestore =
         FirebaseFirestore.getInstance()
 
+    @Singleton
     @Provides
     fun providesUserDataRepository(): UserDataRepository =
         UserDataRepositoryImpl(providesFirebaseAuthentication(), providesFirebaseDb())

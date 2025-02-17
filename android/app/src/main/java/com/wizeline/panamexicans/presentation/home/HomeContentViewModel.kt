@@ -3,6 +3,7 @@ package com.wizeline.panamexicans.presentation.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wizeline.panamexicans.data.authentication.Authentication
+import com.wizeline.panamexicans.data.userdata.UserDataRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +15,10 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeContentViewModel @Inject constructor(val authentication: Authentication) : ViewModel() {
+class HomeContentViewModel @Inject constructor(
+    val authentication: Authentication,
+    val userDataRepository: UserDataRepository
+) : ViewModel() {
     private val _uiState = MutableStateFlow(HomeContentUiState())
     val uiState: StateFlow<HomeContentUiState> = _uiState.asStateFlow()
     private val _uiAction = MutableSharedFlow<HomeContentUiAction>()
@@ -24,6 +28,7 @@ class HomeContentViewModel @Inject constructor(val authentication: Authenticatio
         when (event) {
             is HomeContentUiEvents.OnLogoutClicked -> {
                 authentication.logout()
+                userDataRepository.clearCacheValues()
                 viewModelScope.launch {
                     _uiAction.emit(HomeContentUiAction.OnAccountLogged)
                 }

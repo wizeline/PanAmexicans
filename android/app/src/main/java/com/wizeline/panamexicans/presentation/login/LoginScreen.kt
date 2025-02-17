@@ -14,7 +14,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -25,7 +24,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -55,7 +53,7 @@ import androidx.navigation.compose.rememberNavController
 import com.wizeline.panamexicans.R
 import com.wizeline.panamexicans.navigation.LoginNavHost
 import com.wizeline.panamexicans.navigation.LoginRoute
-import com.wizeline.panamexicans.navigation.MainNavRoute
+import com.wizeline.panamexicans.navigation.AppNavRoute
 import com.wizeline.panamexicans.presentation.composables.PrimaryColorButton
 import com.wizeline.panamexicans.presentation.theme.DarkBlue
 
@@ -70,7 +68,7 @@ fun LoginRoot(
         viewModel.uiAction.collect { event ->
             when (event) {
                 is LoginUiAction.NavigateToMain -> {
-                    mainNavController.navigate(MainNavRoute.HOME.toString()) {
+                    mainNavController.navigate(AppNavRoute.HOME.toString()) {
                         popUpTo(LoginRoute.Login.toString()) { inclusive = true }
                     }
                 }

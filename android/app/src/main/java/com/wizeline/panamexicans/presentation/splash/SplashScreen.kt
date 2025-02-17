@@ -28,7 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.wizeline.panamexicans.R
-import com.wizeline.panamexicans.navigation.MainNavRoute
+import com.wizeline.panamexicans.navigation.AppNavRoute
 
 @Composable
 fun SplashScreenRoot(
@@ -42,14 +42,14 @@ fun SplashScreenRoot(
         viewModel.uiAction.collect { event ->
             when (event) {
                 is UiAction.NavigateToLogin -> {
-                    navController.navigate(MainNavRoute.LOGIN.toString()) {
-                        popUpTo(MainNavRoute.SPLASH.toString()) { inclusive = true }
+                    navController.navigate(AppNavRoute.LOGIN.toString()) {
+                        popUpTo(AppNavRoute.SPLASH.toString()) { inclusive = true }
                     }
                 }
 
                 is UiAction.NavigateToMain -> {
-                    navController.navigate(MainNavRoute.HOME.toString()) {
-                        popUpTo(MainNavRoute.SPLASH.toString()) { inclusive = true }
+                    navController.navigate(AppNavRoute.HOME.toString()) {
+                        popUpTo(AppNavRoute.SPLASH.toString()) { inclusive = true }
                     }
                 }
             }

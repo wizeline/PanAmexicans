@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.wizeline.panamexicans.R
 import com.wizeline.panamexicans.navigation.LoginRoute
-import com.wizeline.panamexicans.navigation.MainNavRoute
+import com.wizeline.panamexicans.navigation.AppNavRoute
 import com.wizeline.panamexicans.presentation.composables.PrimaryColorButton
 import com.wizeline.panamexicans.presentation.theme.DarkBlue
 import com.wizeline.panamexicans.presentation.theme.PanAmexicansTheme
@@ -43,7 +43,7 @@ fun RegisterRoot(
         viewModel.uiAction.collect { event ->
             when (event) {
                 is RegisterUiAction.OnAccountCreated -> {
-                    mainNavController.navigate(MainNavRoute.HOME.toString()) {
+                    mainNavController.navigate(AppNavRoute.HOME.toString()) {
                         popUpTo(LoginRoute.Login.toString()) { inclusive = true }
                     }
                 }

@@ -8,5 +8,4 @@ enum class HomeNavRoute {
     CrashDetector,
     RouteCalculator,
     RideSessions,
-    Main
 }

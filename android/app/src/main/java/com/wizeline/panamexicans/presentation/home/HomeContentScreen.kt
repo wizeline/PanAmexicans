@@ -17,7 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.wizeline.panamexicans.navigation.HomeNavRoute
-import com.wizeline.panamexicans.navigation.MainNavRoute
+import com.wizeline.panamexicans.navigation.AppNavRoute
 import com.wizeline.panamexicans.presentation.composables.PrimaryColorButton
 
 @Composable
@@ -32,8 +32,8 @@ fun HomeContentRoot(
         viewModel.uiAction.collect { event ->
             when (event) {
                 is HomeContentUiAction.OnAccountLogged -> {
-                    mainNavController.navigate(MainNavRoute.LOGIN.toString()) {
-                        popUpTo(MainNavRoute.HOME.toString()) { inclusive = true }
+                    mainNavController.navigate(AppNavRoute.LOGIN.toString()) {
+                        popUpTo(AppNavRoute.HOME.toString()) { inclusive = true }
                     }
                 }
             }
@@ -70,7 +70,7 @@ fun HomeContentRoot(
                 }
 
                 is HomeContentUiEvents.OnFunctionalPocClicked -> {
-                    homeNavController.navigate(HomeNavRoute.Main.name)
+                    mainNavController.navigate(AppNavRoute.MAIN.name)
                 }
 
                 else -> Unit

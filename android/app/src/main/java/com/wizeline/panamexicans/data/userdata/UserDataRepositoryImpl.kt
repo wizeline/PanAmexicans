@@ -12,18 +12,29 @@ class UserDataRepositoryImpl @Inject constructor(
     private val db: FirebaseFirestore
 ) : UserDataRepository {
 
+    private var userDataCached: UserData? = null
     override suspend fun getUserData(): UserData? {
         val currentUser = authentication.currentUser ?: return null
+        if (userDataCached != null) return userDataCached
+
         return try {
             val documentSnapshot = db.collection(FirebaseCollections.USERS.name)
                 .document(currentUser.uid)
                 .get()
                 .await()
 
-            documentSnapshot.toObject(UserData::class.java)
+            val userData = documentSnapshot.toObject(UserData::class.java)
+            userDataCached = userData
+            userData
         } catch (e: Exception) {
             e.printStackTrace()
             null
         }
     }
+
+    override fun clearCacheValues() {
+        userDataCached = null
+    }
+
+
 }
