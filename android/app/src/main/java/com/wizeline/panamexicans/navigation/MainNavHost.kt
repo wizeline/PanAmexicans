@@ -3,9 +3,11 @@ package com.wizeline.panamexicans.navigation
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.wizeline.panamexicans.presentation.main.map.MapRoot
 
 @Composable
 fun MainNavHost(
@@ -19,7 +21,7 @@ fun MainNavHost(
         startDestination = startDestination,
     ) {
         composable(MainNavRoute.Map.toString()) {
-            Text(text = "Map")
+            MapRoot(viewModel = hiltViewModel())
         }
         composable(MainNavRoute.RouteGenerator.toString()) {
             Text(text = "Route Generator")
