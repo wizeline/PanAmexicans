@@ -21,7 +21,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 @main
 struct PanAmexicansApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    @StateObject var sessionManager = SessionManager()
+    @StateObject private var sessionViewModel = SessionViewModel()
     @State private var isLoading: Bool = true
 
     var body: some Scene {
@@ -31,18 +31,27 @@ struct PanAmexicansApp: App {
                     ProgressView()
                         .progressViewStyle(.circular)
                 } else {
-                    Group {
-                        if sessionManager.isUserLoggedIn {
-                            HomeView()
-                        } else {
-                            LoginView()
+                    if let userData = sessionViewModel.userData {
+                        NavigationStack {
+                            HomeView(userData: userData)
+                                .toolbar {
+                                    ToolbarItem(placement: .topBarTrailing) {
+                                        Button {
+                                            sessionViewModel.signOut()
+                                        } label: {
+                                            Text("Log Out")
+                                        }
+                                    }
+                                }
                         }
+                    } else {
+                        LoginView()
+                            .environmentObject(sessionViewModel)
                     }
-                    .environmentObject(sessionManager)
                 }
             }
             .task { @MainActor in
-                await sessionManager.setUserIfNeeded()
+                await sessionViewModel.setUserIfNeeded()
                 isLoading = false
             }
         }

@@ -10,22 +10,20 @@ import MapKit
 
 final class LocationManager: NSObject, ObservableObject {
     @Published var lastKnownLocation: CLLocationCoordinate2D?
-    @Published var region = MKCoordinateRegion()
     private let manager = CLLocationManager()
 
-    var authorizationStatus: CLAuthorizationStatus {
-        manager.authorizationStatus
-    }
-
+    // MARK: - Initializers
     override init() {
         super.init()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.requestWhenInUseAuthorization()
+        manager.requestAlwaysAuthorization()
         manager.startUpdatingLocation()
     }
 }
 
+// MARK: - LocationManager+CLLocationManagerDelegate
 extension LocationManager: CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         lastKnownLocation = locations.last?.coordinate

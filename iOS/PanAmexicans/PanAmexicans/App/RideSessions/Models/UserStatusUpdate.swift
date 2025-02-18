@@ -14,7 +14,7 @@ struct UserStatusUpdate: Encodable {
     var lon: Double
     var updatedAt: Timestamp = Timestamp()
 
-    var dictionary: [String: Any]? {
-        try? Firestore.Encoder().encode(self)
+    func getDictionary() throws -> [String: Any] {
+        try Firestore.Encoder().encode(self)
     }
 }

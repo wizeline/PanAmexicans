@@ -5,18 +5,21 @@
 //  Created by Karen Gonzalez Velazquez on 17/02/25.
 //
 
-import FirebaseAuth
 import FirebaseFirestore
 
 final class RideSessionRepository: ObservableObject {
     @Published var rideSessionUsers: [UserStatus] = []
 
     private let db: Firestore = Firestore.firestore()
-    private let auth = Auth.auth()
+    private let userId: String
     private var listener: ListenerRegistration?
 
-    private var currentUser: User? {
-        auth.currentUser
+    init(userId: String) {
+        self.userId = userId
+    }
+
+    deinit {
+        clearListener()
     }
 
     private var rideSessionCollection: CollectionReference {
@@ -24,10 +27,6 @@ final class RideSessionRepository: ObservableObject {
     }
 
     func createAndJoinRideSession(displayName: String, userStatus: UserStatus) async throws -> RideSession {
-        guard let userId = currentUser?.uid else {
-            throw AuthenticationError.noUser
-        }
-
         let rideSession = RideSession(
             creator: userId,
             rideSessionName: displayName
@@ -48,10 +47,6 @@ final class RideSessionRepository: ObservableObject {
     }
 
     func joinSession(_ sessionId: String, userStatus: UserStatus) async throws {
-        guard let userId = currentUser?.uid else {
-            throw AuthenticationError.noUser
-        }
-
         try rideSessionCollection
             .document(sessionId)
             .collection(Collection.USERS.rawValue)
@@ -60,9 +55,7 @@ final class RideSessionRepository: ObservableObject {
     }
 
     func updateRideSession(_ rideSessionId: String, update: UserStatusUpdate) async throws {
-        guard let userId = currentUser?.uid, let data = update.dictionary else {
-            throw AuthenticationError.noUser
-        }
+        let data = try update.getDictionary()
 
         try await rideSessionCollection.document(rideSessionId)
             .collection(Collection.USERS.rawValue)
@@ -71,7 +64,8 @@ final class RideSessionRepository: ObservableObject {
     }
 
     func getCurrentSession() async -> RideSession? {
-        guard let rideSessions = try? await getRideSessions(), let userId = currentUser?.uid else { return nil }
+        guard let rideSessions = try? await getRideSessions() else { return nil }
+
         var currentSession: RideSession?
 
         for session in rideSessions {
@@ -103,10 +97,6 @@ final class RideSessionRepository: ObservableObject {
     }
 
     func leaveRideSession(_ rideSessionId: String) async throws {
-        guard let userId = currentUser?.uid else {
-            throw AuthenticationError.noUser
-        }
-
         clearListener()
 
         let sessionReference = rideSessionCollection

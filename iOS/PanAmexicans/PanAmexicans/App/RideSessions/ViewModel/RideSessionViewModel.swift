@@ -7,31 +7,28 @@
 
 import Foundation
 
-final class SessionManager: ObservableObject {
-    @Published var userData: UserData?
-    @Published var alertError: String?
+final class RideSessionViewModel: ObservableObject {
     @Published var currentSession: RideSession?
     @Published var rideSessions: [RideSession] = []
     @Published var rideSessionUsers: [UserStatus] = []
 
-    var isUserLoggedIn: Bool {
-        userData != nil
-    }
+    private let userData: UserData
+    private let rideSessionRepository: RideSessionRepository
 
-    private let authenticationRepository = AuthenticationRepository()
-    private let rideSessionRepository = RideSessionRepository()
+    init(
+        userData: UserData,
+        rideSessionRepository: RideSessionRepository
+    ) {
+        self.userData = userData
+        self.rideSessionRepository = rideSessionRepository
 
-    init() {
-        rideSessionRepository
+        self.rideSessionRepository
             .$rideSessionUsers
               .assign(to: &$rideSessionUsers)
     }
 
     @MainActor
-    func setUserIfNeeded() async {
-        guard !isUserLoggedIn else { return }
-        userData = try? await authenticationRepository.getCurrentUserData()
-
+    func setSessionIfNeeded() async {
         if let currentSession = await rideSessionRepository.getCurrentSession(),
            let sessionId = currentSession.id {
             self.rideSessionRepository.startRideSessionListener(for: sessionId)
@@ -40,44 +37,7 @@ final class SessionManager: ObservableObject {
     }
 
     @MainActor
-    func createAccount(
-        name: String,
-        lastName: String,
-        email: String,
-        password: String
-    ) async {
-        do {
-            let userData = try await authenticationRepository.createAccount(
-                name: name,
-                lastName: lastName,
-                email: email,
-                password: password
-            )
-
-            self.userData = userData
-        } catch {
-            alertError = error.localizedDescription
-        }
-    }
-
-    @MainActor
-    func signIn(email: String, password: String) async {
-        do {
-            let userData = try await authenticationRepository.signIn(email: email, password: password)
-            self.userData = userData
-        } catch {
-            alertError = error.localizedDescription
-        }
-    }
-
-    func signOut() {
-        authenticationRepository.signOut()
-    }
-
-    @MainActor
     func createAndJoinRideSession(latitude: Double, longitude: Double) async {
-        guard let userData else { return }
-
         do {
             let session = try await rideSessionRepository.createAndJoinRideSession(
                 displayName: "\(userData.firstName)'s Ride Session",
@@ -124,7 +84,7 @@ final class SessionManager: ObservableObject {
 
     @MainActor
     func joinSession(_ session: RideSession, latitude: Double, longitude: Double) async {
-        guard let userData, let sessionId = session.id else { return }
+        guard let sessionId = session.id else { return }
 
         do {
             let userStatus = UserStatus(

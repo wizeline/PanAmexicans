@@ -7,20 +7,20 @@
 
 import SwiftUI
 
-struct SessionsView: View {
-    @EnvironmentObject var sessionManager: SessionManager
-    @StateObject private var locationManager = LocationManager()
+struct RideSessionsView: View {
+    @EnvironmentObject var rideSessionViewModel: RideSessionViewModel
+    @EnvironmentObject var locationManager: LocationManager
 
     var body: some View {
         VStack {
             Group {
-                if let session = sessionManager.currentSession {
+                if let session = rideSessionViewModel.currentSession {
                     ActiveSessionView(session: session)
                 } else {
                     NoActiveSessionView()
                 }
             }
-            .environmentObject(sessionManager)
+            .environmentObject(rideSessionViewModel)
             .environmentObject(locationManager)
 
             Spacer()

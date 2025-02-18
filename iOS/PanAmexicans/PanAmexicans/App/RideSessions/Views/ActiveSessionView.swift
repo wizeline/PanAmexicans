@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ActiveSessionView: View {
-    @EnvironmentObject var sessionManager: SessionManager
+    @EnvironmentObject var rideSessionManager: RideSessionViewModel
     @EnvironmentObject var locationManager: LocationManager
     let session: RideSession
 
@@ -19,13 +19,13 @@ struct ActiveSessionView: View {
 
             Button {
                 Task {
-                    await sessionManager.leaveRideSession()
+                    await rideSessionManager.leaveRideSession()
                 }
             } label: {
                 Text("Leave")
             }
 
-            ForEach(sessionManager.rideSessionUsers, id: \.id) { user in
+            ForEach(rideSessionManager.rideSessionUsers, id: \.id) { user in
                 VStack {
                     Text("User: \(user.firstName)")
                     Text("Latitude: \(user.lat)")
@@ -49,7 +49,7 @@ struct ActiveSessionView: View {
         Task {
             guard let location = locationManager.lastKnownLocation else { return }
 
-            await sessionManager.update(
+            await rideSessionManager.update(
                 latitude: location.latitude,
                 longitude: location.longitude
             )
