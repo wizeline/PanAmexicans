@@ -13,10 +13,13 @@ import kotlinx.coroutines.flow.callbackFlow
 class RideSessionRepositoryImpl() : RideSessionRepository {
     override val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
+    private var connectedRideSessionId: String? = null
+
+    override fun getConnectedSessionId() = connectedRideSessionId
 
     override fun createRideSession(
         displayName: String,
-        userStatus: UserStatus,
+        initStatus: UserStatus,
         onSuccess: (rideSessionId: String) -> Unit,
         onError: (Exception) -> Unit
     ) {
@@ -34,11 +37,12 @@ class RideSessionRepositoryImpl() : RideSessionRepository {
         db.collection(FirebaseCollections.RIDE_SESSIONS.name)
             .add(rideSession)
             .addOnSuccessListener { documentReference ->
+                connectedRideSessionId = documentReference.id
                 db.collection(FirebaseCollections.RIDE_SESSIONS.name)
                     .document(documentReference.id)
                     .collection(FirebaseCollections.USERS.name)
                     .document(currentUser.uid)
-                    .set(userStatus)
+                    .set(initStatus)
                     .addOnSuccessListener {
                         onSuccess(documentReference.id)
                     }
@@ -71,20 +75,21 @@ class RideSessionRepositoryImpl() : RideSessionRepository {
             .addOnFailureListener { e -> onError(e) }
     }
 
-    override fun getRideSessionUsersFlow(rideSessionId: String): Flow<List<UserStatus>> = callbackFlow {
-        val listenerRegistration = db.collection(FirebaseCollections.RIDE_SESSIONS.name)
-            .document(rideSessionId)
-            .collection(FirebaseCollections.USERS.name)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    close(error)
-                    return@addSnapshotListener
+    override fun getRideSessionUsersFlow(rideSessionId: String): Flow<List<UserStatus>> =
+        callbackFlow {
+            val listenerRegistration = db.collection(FirebaseCollections.RIDE_SESSIONS.name)
+                .document(rideSessionId)
+                .collection(FirebaseCollections.USERS.name)
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        close(error)
+                        return@addSnapshotListener
+                    }
+                    val users = snapshot?.toObjects(UserStatus::class.java) ?: emptyList()
+                    trySend(users).isSuccess
                 }
-                val users = snapshot?.toObjects(UserStatus::class.java) ?: emptyList()
-                trySend(users).isSuccess
-            }
-        awaitClose { listenerRegistration.remove() }
-    }
+            awaitClose { listenerRegistration.remove() }
+        }
 
     override fun getRideSessions(
         onSuccess: (List<Pair<String, RideSession>>) -> Unit,
@@ -121,6 +126,7 @@ class RideSessionRepositoryImpl() : RideSessionRepository {
 
         userRef.delete()
             .addOnSuccessListener {
+                connectedRideSessionId = null
                 sessionRef.collection(FirebaseCollections.USERS.name).get()
                     .addOnSuccessListener { snapshot ->
                         if (snapshot.isEmpty) {

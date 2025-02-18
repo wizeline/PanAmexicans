@@ -7,9 +7,10 @@ import kotlinx.coroutines.flow.Flow
 
 interface RideSessionRepository {
     val db: FirebaseFirestore
+
     fun createRideSession(
         displayName: String,
-        userStatus: UserStatus,
+        initStatus: UserStatus,
         onSuccess: (rideSessionId: String) -> Unit,
         onError: (Exception) -> Unit
     )
@@ -33,4 +34,6 @@ interface RideSessionRepository {
     )
 
     fun getRideSessionUsersFlow(rideSessionId: String): Flow<List<UserStatus>>
+
+    fun getConnectedSessionId(): String?
 }

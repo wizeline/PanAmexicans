@@ -2,8 +2,11 @@ package com.wizeline.panamexicans.presentation.main.map
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -13,17 +16,24 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
+import com.wizeline.panamexicans.presentation.composables.PrimaryColorButton
 import kotlinx.coroutines.launch
 
 @Composable
@@ -46,18 +56,17 @@ fun MapScreen(
     onEvent: (MapUiEvents) -> Unit,
     uiState: MapUiState
 ) {
-    //todo need to change view type, only following if I have not moved the map
     val cameraPositionState = rememberCameraPositionState {
         position =
             CameraPosition.fromLatLngZoom(
                 LatLng(
-                    uiState.currentLocation?.latitude ?: 0.0,
-                    uiState.currentLocation?.longitude ?: 0.0
+                    uiState.cachedLocation?.latitude ?: 0.0,
+                    uiState.cachedLocation?.longitude ?: 0.0
                 ), 15f
             )
     }
-    LaunchedEffect(uiState.currentLocation) {
-        uiState.currentLocation?.let {
+    LaunchedEffect(uiState.cachedLocation) {
+        uiState.cachedLocation?.let {
             cameraPositionState.animate(
                 update = CameraUpdateFactory.newLatLngZoom(
                     LatLng(it.latitude, it.longitude),
@@ -70,18 +79,48 @@ fun MapScreen(
     Box {
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
+            uiSettings = MapUiSettings().copy(
+                compassEnabled = true
+            ),
             cameraPositionState = cameraPositionState,
             onPOIClick = { poi ->
                 onEvent(MapUiEvents.OnPoiClicked(poi))
             },
             properties = MapProperties().copy(isMyLocationEnabled = true),
         ) {
-            uiState.currentLocation?.let {
-                //AnimatedMarker(
-                //    targetPosition = LatLng(it.latitude, it.longitude),
-                //    title = "Mi ubicación"
-                //)
+            uiState.routePoints?.let {
+                Polyline(
+                    points = uiState.routePoints,
+                    color = Color.Blue,
+                    width = 8f
+                )
             }
+            uiState.otherRiders.forEach { user ->
+                Marker(
+                    state = MarkerState(position = LatLng(user.lat, user.lon),),
+                    title = "User: ${user.id}"
+                )
+            }
+        }
+        if (uiState.rideSessionTitle.isNotBlank()) {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xA7000000))
+                    .padding(4.dp),
+                textAlign = TextAlign.Center,
+                text = uiState.rideSessionTitle,
+                color = Color.White
+            )
+        }
+        if (uiState.displayStartRideSession) {
+            PrimaryColorButton(
+                modifier = Modifier
+                    .fillMaxWidth(.7f)
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 36.dp),
+                text = "Start a Shared session",
+                onClick = { onEvent(MapUiEvents.OnStartSharedSessionClicked) })
         }
         if (uiState.displayPoiDialog) {
             uiState.lastPoiClicked?.let {
@@ -156,7 +195,7 @@ fun AnimatedMarker(
     )
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 private fun MapScreenPreview() {
     MapScreen(onEvent = {}, uiState = MapUiState())

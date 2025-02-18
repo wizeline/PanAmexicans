@@ -8,6 +8,7 @@ import com.wizeline.panamexicans.data.ridesessions.RideSessionRepository
 import com.wizeline.panamexicans.data.models.UserStatus
 import com.wizeline.panamexicans.data.ridesessions.RideSessionStatus
 import com.wizeline.panamexicans.data.userdata.UserDataRepository
+import com.wizeline.panamexicans.utils.getRandomCoordinateInSanFrancisco
 import com.wizeline.panamexicans.utils.getRandomLatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -100,13 +101,13 @@ class RideSessionsViewModel @Inject constructor(
         viewModelScope.launch {
             val userData = userRepository.getUserData()
             repeat(10) {
-                val randomLatLong = getRandomLatLng()
+                val randomLatLong = getRandomCoordinateInSanFrancisco()
                 val userStatus = UserStatus(
                     firstName = userData?.firstName.orEmpty(),
                     lastName = userData?.lastName.orEmpty(),
                     id = userData?.id.orEmpty(),
-                    lat = randomLatLong.first,
-                    lon = randomLatLong.second,
+                    lat = randomLatLong.latitude,
+                    lon = randomLatLong.longitude,
                     status = RideSessionStatus.RIDING.name
                 )
                 repository.updateRideSessionStatus(sessionId,
@@ -161,7 +162,7 @@ class RideSessionsViewModel @Inject constructor(
                 },
                 onError = { // TODO:
                 },
-                userStatus = UserStatus(
+                initStatus = UserStatus(
                     firstName = userData?.firstName.orEmpty(),
                     lastName = userData?.lastName.orEmpty(),
                     id = userData?.id.orEmpty(),
