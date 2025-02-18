@@ -37,28 +37,24 @@ final class RideSessionViewModel: ObservableObject {
     }
 
     @MainActor
-    func createAndJoinRideSession(latitude: Double, longitude: Double) async {
-        do {
-            let session = try await rideSessionRepository.createAndJoinRideSession(
-                displayName: "\(userData.firstName)'s Ride Session",
-                userStatus: UserStatus(
-                    id: userData.id,
-                    firstName: userData.firstName,
-                    lastName: userData.lastName,
-                    lat: latitude,
-                    lon: longitude,
-                    status: RideSessionStatus.RIDING.rawValue
-                )
+    func createAndJoinRideSession(latitude: Double, longitude: Double) async throws {
+        let session = try await rideSessionRepository.createAndJoinRideSession(
+            displayName: "\(userData.firstName)'s Ride Session",
+            userStatus: UserStatus(
+                id: userData.id,
+                firstName: userData.firstName,
+                lastName: userData.lastName,
+                lat: latitude,
+                lon: longitude,
+                status: RideSessionStatus.RIDING.rawValue
             )
+        )
 
-            if let sessionId = session.id {
-                rideSessionRepository.startRideSessionListener(for: sessionId)
-            }
-
-            currentSession = session
-        } catch {
-            print(error.localizedDescription)
+        if let sessionId = session.id {
+            rideSessionRepository.startRideSessionListener(for: sessionId)
         }
+
+        currentSession = session
     }
 
     func update(latitude: Double, longitude: Double) async {
@@ -71,45 +67,34 @@ final class RideSessionViewModel: ObservableObject {
     }
 
     @MainActor
-    func leaveRideSession() async {
+    func leaveRideSession() async throws {
         guard let sessionId = currentSession?.id else { return }
 
-        do {
-            try await rideSessionRepository.leaveRideSession(sessionId)
-            currentSession = nil
-        } catch {
-            print(error.localizedDescription)
-        }
+        try await rideSessionRepository.leaveRideSession(sessionId)
+        currentSession = nil
+        rideSessionUsers.removeAll()
     }
 
     @MainActor
-    func joinSession(_ session: RideSession, latitude: Double, longitude: Double) async {
+    func joinSession(_ session: RideSession, latitude: Double, longitude: Double) async throws {
         guard let sessionId = session.id else { return }
 
-        do {
-            let userStatus = UserStatus(
-                id: userData.id,
-                firstName: userData.firstName,
-                lastName: userData.lastName,
-                lat: latitude,
-                lon: longitude,
-                status: RideSessionStatus.RIDING.rawValue
-            )
+        let userStatus = UserStatus(
+            id: userData.id,
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            lat: latitude,
+            lon: longitude,
+            status: RideSessionStatus.RIDING.rawValue
+        )
 
-            try await rideSessionRepository.joinSession(sessionId, userStatus: userStatus)
-            rideSessionRepository.startRideSessionListener(for: sessionId)
-            currentSession = session
-        } catch {
-            print(error.localizedDescription)
-        }
+        try await rideSessionRepository.joinSession(sessionId, userStatus: userStatus)
+        rideSessionRepository.startRideSessionListener(for: sessionId)
+        currentSession = session
     }
 
     @MainActor
-    func getRideSessions() async {
-        do {
-            rideSessions = try await rideSessionRepository.getRideSessions()
-        } catch {
-            print(error.localizedDescription)
-        }
+    func getRideSessions() async throws {
+        rideSessions = try await rideSessionRepository.getRideSessions()
     }
 }

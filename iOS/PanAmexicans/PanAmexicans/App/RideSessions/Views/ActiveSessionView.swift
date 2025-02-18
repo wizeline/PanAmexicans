@@ -10,6 +10,12 @@ import SwiftUI
 struct ActiveSessionView: View {
     @EnvironmentObject var rideSessionManager: RideSessionViewModel
     @EnvironmentObject var locationManager: LocationManager
+    @State private var isLoading: Bool = true
+
+    // MARK: - Error alert
+    @State private var errorMessage: String = ""
+    @State private var showAlert: Bool = false
+
     let session: RideSession
 
     var body: some View {
@@ -18,9 +24,7 @@ struct ActiveSessionView: View {
                 .font(.headline)
 
             Button {
-                Task {
-                    await rideSessionManager.leaveRideSession()
-                }
+                onLeave()
             } label: {
                 Text("Leave")
             }
@@ -42,6 +46,11 @@ struct ActiveSessionView: View {
         .onReceive(locationManager.$lastKnownLocation) { _ in
             updateSession()
         }
+        .alert("", isPresented: $showAlert, actions: {
+            Button { } label: { Text("Ok") }
+        }, message: {
+            Text(errorMessage)
+        })
     }
 
     // MARK: - Helpers
@@ -53,6 +62,20 @@ struct ActiveSessionView: View {
                 latitude: location.latitude,
                 longitude: location.longitude
             )
+        }
+    }
+
+    private func onLeave() {
+        Task { @MainActor in
+            do {
+                isLoading = true
+                try await rideSessionManager.leaveRideSession()
+                isLoading = false
+            } catch {
+                isLoading = false
+                errorMessage = error.localizedDescription
+                showAlert = true
+            }
         }
     }
 }

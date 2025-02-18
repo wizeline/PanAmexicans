@@ -14,17 +14,24 @@ struct MapView: View {
 
     var body: some View {
         Map(initialPosition: .userLocation(fallback: .automatic)) {
+            UserAnnotation()
+
             ForEach(rideSessionViewModel.rideSessionUsers, id: \.id) { user in
-                Marker(
-                    coordinate: CLLocationCoordinate2D(
-                        latitude: user.lat,
-                        longitude: user.lon
-                    )
-                ) {
-                    Text(user.firstName)
+                Annotation(user.firstName, coordinate: .init(latitude: user.lat, longitude: user.lon)) {
+                    Circle()
+                        .foregroundStyle(Color.purple)
+                        .frame(width: 20, height: 20)
                 }
             }
         }
         .mapStyle(.standard(elevation: .realistic, pointsOfInterest: .excludingAll))
+        .mapControls {
+            MapUserLocationButton()
+                .buttonBorderShape(.circle)
+
+            MapCompass()
+                .mapControlVisibility(.visible)
+        }
+        .controlSize(.large)
     }
 }

@@ -16,9 +16,22 @@
 		8A0FCD2E2D5AF7D60034D7B9 /* PanAmexicans.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PanAmexicans.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		8AB184732D64382400C095D0 /* Exceptions for "PanAmexicans" folder in "PanAmexicans" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 8A0FCD2D2D5AF7D60034D7B9 /* PanAmexicans */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		8A0FCD302D5AF7D60034D7B9 /* PanAmexicans */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				8AB184732D64382400C095D0 /* Exceptions for "PanAmexicans" folder in "PanAmexicans" target */,
+			);
 			path = PanAmexicans;
 			sourceTree = "<group>";
 		};
@@ -279,6 +292,7 @@
 				DEVELOPMENT_TEAM = S7Z443XQ7A;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PanAmexicans/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Pan Amexicans";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Find the best routes";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Find the best routes";
@@ -312,6 +326,7 @@
 				DEVELOPMENT_TEAM = S7Z443XQ7A;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PanAmexicans/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Pan Amexicans";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Find the best routes";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Find the best routes";

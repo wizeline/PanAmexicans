@@ -12,6 +12,10 @@ struct NoActiveSessionView: View {
     @EnvironmentObject var locationManager: LocationManager
     @State private var isLoading: Bool = true
 
+    // MARK: - Error alert
+    @State private var errorMessage: String = ""
+    @State private var showAlert: Bool = false
+    
     var body: some View {
         List {
             Section {
@@ -41,24 +45,41 @@ struct NoActiveSessionView: View {
         .task {
             await getRideSessions()
         }
+        .alert("", isPresented: $showAlert, actions: {
+            Button { } label: { Text("Ok") }
+        }, message: {
+            Text(errorMessage)
+        })
     }
 
     // MARK: - Helpers
     @MainActor
     private func getRideSessions() async {
-        isLoading = true
-        await rideSessionViewModel.getRideSessions()
-        isLoading = false
+        do {
+            isLoading = true
+            try await rideSessionViewModel.getRideSessions()
+            isLoading = false
+        } catch {
+            showAlert(with: error.localizedDescription)
+        }
     }
 
     private func onAddSessionTapped() {
         guard let location = locationManager.lastKnownLocation else { return }
 
-        Task {
-            await rideSessionViewModel.createAndJoinRideSession(
-                latitude: location.latitude,
-                longitude: location.longitude
-            )
+        Task { @MainActor in
+            do {
+                isLoading = true
+
+                try await rideSessionViewModel.createAndJoinRideSession(
+                    latitude: location.latitude,
+                    longitude: location.longitude
+                )
+
+                isLoading = false
+            } catch {
+                showAlert(with: error.localizedDescription)
+            }
         }
     }
 
@@ -66,12 +87,26 @@ struct NoActiveSessionView: View {
         guard let location = locationManager.lastKnownLocation,
               rideSessionViewModel.currentSession == nil else { return }
 
-        Task {
-            await rideSessionViewModel.joinSession(
-                session,
-                latitude: location.latitude,
-                longitude: location.longitude
-            )
+        Task { @MainActor in
+            do {
+                isLoading = true
+
+                try await rideSessionViewModel.joinSession(
+                    session,
+                    latitude: location.latitude,
+                    longitude: location.longitude
+                )
+
+                isLoading = false
+            } catch {
+                showAlert(with: error.localizedDescription)
+            }
         }
+    }
+
+    private func showAlert(with message: String) {
+        isLoading = false
+        errorMessage = message
+        showAlert = true
     }
 }
