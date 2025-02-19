@@ -128,11 +128,29 @@ class MapViewModel @Inject constructor(
             }
 
             is MapUiEvents.OnTakeMeThereClicked -> {
-                onTakeMeThereClicked(event)
+                onTakeMeThereClicked(event.latlong)
+            }
+
+            is MapUiEvents.OnDangerClicked -> {
+                _uiState.update {
+                    it.copy(
+                        displayDangerDialog = true,
+                        lastDangerName = event.name,
+                        lastDangerLatLng = event.targetPosition
+                    )
+                }
             }
 
             is MapUiEvents.OnDismissDialog -> {
-                _uiState.update { it.copy(displayPoiDialog = false, lastPoiClicked = null) }
+                _uiState.update {
+                    it.copy(
+                        displayPoiDialog = false,
+                        lastPoiClicked = null,
+                        lastDangerName = null,
+                        lastDangerLatLng = null,
+                        displayDangerDialog = false
+                    )
+                }
             }
 
             else -> Unit
@@ -188,14 +206,14 @@ class MapViewModel @Inject constructor(
         }
     }
 
-    private fun onTakeMeThereClicked(event: MapUiEvents.OnTakeMeThereClicked) {
-        _uiState.update { it.copy(displayPoiDialog = false) }
+    private fun onTakeMeThereClicked(latlong: LatLng) {
+        _uiState.update { it.copy(displayPoiDialog = false, displayDangerDialog = false) }
         val alreadyInRoute = _uiState.value.routePoints != null
         viewModelScope.launch {
             val routePoints = _uiState.value.currentLocation?.toLatLng()?.let {
                 directionsRepository.getRoute(
                     start = it,
-                    end = event.poi.latLng,
+                    end = latlong,
                     apiKey = BuildConfig.MAPS_API_KEY
                 )
             }
@@ -239,6 +257,9 @@ data class MapUiState(
     val sessionJointId: String? = null,
     val isLoading: Boolean = false,
     val displayPoiDialog: Boolean = false,
+    val displayDangerDialog: Boolean = false,
+    val lastDangerLatLng: LatLng? = null,
+    val lastDangerName: String? = null,
     val lastPoiClicked: PointOfInterest? = null,
     val routePoints: List<LatLng>? = null,
     val displayStartRideSession: Boolean = false,
@@ -250,7 +271,10 @@ data class MapUiState(
 
 sealed interface MapUiEvents {
     data object OnDismissDialog : MapUiEvents
+    data object OnCall911Clicked : MapUiEvents
     data object OnStartSharedSessionClicked : MapUiEvents
     data class OnPoiClicked(val poi: PointOfInterest) : MapUiEvents
-    data class OnTakeMeThereClicked(val poi: PointOfInterest) : MapUiEvents
+    data class OnTakeMeThereClicked(val latlong: LatLng) : MapUiEvents
+
+    data class OnDangerClicked(val targetPosition: LatLng, val name: String) : MapUiEvents
 }

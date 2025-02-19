@@ -1,9 +1,12 @@
 package com.wizeline.panamexicans.utils
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.location.Location
+import android.net.Uri
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import com.google.android.gms.maps.MapsInitializer
 import com.google.android.gms.maps.model.BitmapDescriptor
@@ -46,4 +49,21 @@ fun getBitmapDescriptorFromVector(
     val canvas = Canvas(bitmap)
     vectorDrawable.draw(canvas)
     return BitmapDescriptorFactory.fromBitmap(bitmap)
+}
+
+inline fun <reified T : Enum<T>> randomEnumValue(): T {
+    val values = enumValues<T>()
+    return values.random()
+}
+
+fun callEmergency(context: Context) {
+    val phoneNumber = "911"
+    val intent = Intent(Intent.ACTION_DIAL).apply {
+        data = Uri.parse("tel:$phoneNumber")
+    }
+    if (intent.resolveActivity(context.packageManager) != null) {
+        context.startActivity(intent)
+    } else {
+        Toast.makeText(context, "No dialer available", Toast.LENGTH_SHORT).show()
+    }
 }

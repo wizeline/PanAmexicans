@@ -3,12 +3,18 @@ package com.wizeline.panamexicans.presentation.main.map
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -23,6 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.CameraPosition
@@ -35,22 +42,30 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.wizeline.panamexicans.R
+import com.wizeline.panamexicans.data.ridesessions.RideSessionStatus
 import com.wizeline.panamexicans.presentation.composables.PrimaryColorButton
+import com.wizeline.panamexicans.utils.callEmergency
 import com.wizeline.panamexicans.utils.getBitmapDescriptorFromVector
 import kotlinx.coroutines.launch
 
 @Composable
 fun MapRoot(modifier: Modifier = Modifier, viewModel: MapViewModel) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.refreshSessionIfConnected()
     }
+
     MapScreen(
         uiState = uiState,
         onEvent = { event ->
             viewModel.onEvent(event)
             when (event) {
+                is MapUiEvents.OnCall911Clicked -> {
+                    callEmergency(context)
+                }
+
                 else -> Unit
             }
         }
@@ -74,6 +89,20 @@ fun MapScreen(
     }
     val bikerIcon = remember {
         getBitmapDescriptorFromVector(context, R.drawable.ic_biker, width = 100, height = 100)
+    }
+    val lunchIcon = remember {
+        getBitmapDescriptorFromVector(context, R.drawable.ic_lunch, width = 100, height = 100)
+    }
+    val dangerIcon = remember {
+        getBitmapDescriptorFromVector(context, R.drawable.ic_warning, width = 100, height = 100)
+    }
+    val bathroomIcon = remember {
+        getBitmapDescriptorFromVector(
+            context,
+            R.drawable.ic_bathroom_state,
+            width = 100,
+            height = 100
+        )
     }
     LaunchedEffect(uiState.cachedLocation) {
         uiState.cachedLocation?.let {
@@ -109,7 +138,21 @@ fun MapScreen(
                     targetPosition = LatLng(user.lat, user.lon),
                     title = "${user.firstName} ${user.lastName}",
                     snippet = user.status,
-                    icon = bikerIcon
+                    onDangerClicked = { targetPosition, name ->
+                        onEvent(
+                            MapUiEvents.OnDangerClicked(
+                                targetPosition = targetPosition,
+                                name = name
+                            )
+                        )
+                    },
+                    icon = when (user.status) {
+                        RideSessionStatus.RIDING.name -> bikerIcon
+                        RideSessionStatus.DANGER.name -> dangerIcon
+                        RideSessionStatus.LUNCH.name -> lunchIcon
+                        RideSessionStatus.BATHROOM.name -> bathroomIcon
+                        else -> bikerIcon
+                    }
                 )
             }
         }
@@ -137,8 +180,21 @@ fun MapScreen(
             uiState.lastPoiClicked?.let {
                 TakeMeThereDialog(title = it.name,
                     onDismiss = { onEvent(MapUiEvents.OnDismissDialog) },
-                    onTakeMeThereClicked = { onEvent(MapUiEvents.OnTakeMeThereClicked(it)) })
+                    onTakeMeThereClicked = { onEvent(MapUiEvents.OnTakeMeThereClicked(it.latLng)) })
             }
+        }
+        if (uiState.displayDangerDialog) {
+            ThreeButtonDialog(
+                title = "${uiState.lastDangerName} is in danger",
+                message = "Please assist him or call 911 if he is in an emergency",
+                onCall911 = { onEvent(MapUiEvents.OnCall911Clicked) },
+                onTakeMeThere = {
+                    uiState.lastDangerLatLng?.let {
+                        onEvent(MapUiEvents.OnTakeMeThereClicked(it))
+                    }
+                },
+                onCancel = { onEvent(MapUiEvents.OnDismissDialog) }
+            )
         }
     }
 }
@@ -173,11 +229,64 @@ fun TakeMeThereDialog(
 }
 
 @Composable
+fun ThreeButtonDialog(
+    title: String,
+    message: String,
+    onCall911: () -> Unit,
+    onTakeMeThere: () -> Unit,
+    onCancel: () -> Unit
+) {
+    Dialog(onDismissRequest = onCancel) {
+        Surface(
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.background,
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = message, style = MaterialTheme.typography.bodyMedium)
+                Spacer(modifier = Modifier.height(16.dp))
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.SpaceEvenly,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    PrimaryColorButton(
+                        modifier = Modifier.fillMaxWidth(.9f),
+                        text = "Call 911",
+                        onClick = onCall911
+                    )
+                    PrimaryColorButton(
+                        modifier = Modifier.fillMaxWidth(.9f),
+                        onClick = onTakeMeThere,
+                        text = "Take me there"
+                    )
+                    PrimaryColorButton(
+                        modifier = Modifier.fillMaxWidth(.9f),
+                        onClick = onCancel,
+                        text = "Cancel"
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun AnimatedMarker(
     targetPosition: LatLng,
     animationDuration: Int = 1000,
     title: String? = null,
     snippet: String? = null,
+    onDangerClicked: (LatLng, String) -> Unit,
     icon: BitmapDescriptor? = null
 ) {
     val latAnim = remember { Animatable(targetPosition.latitude.toFloat()) }
@@ -202,7 +311,13 @@ fun AnimatedMarker(
         state = MarkerState(LatLng(latAnim.value.toDouble(), lngAnim.value.toDouble())),
         title = title,
         snippet = snippet,
-        icon = icon
+        icon = icon,
+        onClick = {
+            if (snippet == RideSessionStatus.DANGER.name) {
+                onDangerClicked(targetPosition, title.orEmpty())
+            }
+            false
+        }
     )
 }
 
