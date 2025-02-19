@@ -19,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -33,13 +34,18 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
+import com.wizeline.panamexicans.R
 import com.wizeline.panamexicans.presentation.composables.PrimaryColorButton
+import com.wizeline.panamexicans.utils.getBitmapDescriptorFromVector
 import kotlinx.coroutines.launch
 
 @Composable
 fun MapRoot(modifier: Modifier = Modifier, viewModel: MapViewModel) {
     val uiState by viewModel.uiState.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.refreshSessionIfConnected()
+    }
     MapScreen(
         uiState = uiState,
         onEvent = { event ->
@@ -56,6 +62,7 @@ fun MapScreen(
     onEvent: (MapUiEvents) -> Unit,
     uiState: MapUiState
 ) {
+    val context = LocalContext.current
     val cameraPositionState = rememberCameraPositionState {
         position =
             CameraPosition.fromLatLngZoom(
@@ -65,14 +72,16 @@ fun MapScreen(
                 ), 15f
             )
     }
+    val bikerIcon = remember {
+        getBitmapDescriptorFromVector(context, R.drawable.ic_biker, width = 100, height = 100)
+    }
     LaunchedEffect(uiState.cachedLocation) {
         uiState.cachedLocation?.let {
-            cameraPositionState.animate(
+            cameraPositionState.move(
                 update = CameraUpdateFactory.newLatLngZoom(
                     LatLng(it.latitude, it.longitude),
                     15f
                 ),
-                durationMs = 1000
             )
         }
     }
@@ -96,9 +105,11 @@ fun MapScreen(
                 )
             }
             uiState.otherRiders.forEach { user ->
-                Marker(
-                    state = MarkerState(position = LatLng(user.lat, user.lon),),
-                    title = "User: ${user.id}"
+                AnimatedMarker(
+                    targetPosition = LatLng(user.lat, user.lon),
+                    title = "${user.firstName} ${user.lastName}",
+                    snippet = user.status,
+                    icon = bikerIcon
                 )
             }
         }

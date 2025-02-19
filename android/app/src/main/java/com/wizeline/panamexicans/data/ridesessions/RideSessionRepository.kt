@@ -33,7 +33,9 @@ interface RideSessionRepository {
         onError: (Exception) -> Unit
     )
 
+    fun setAsConnectedInSession(sessionId: String, sessionName: String)
+
     fun getRideSessionUsersFlow(rideSessionId: String): Flow<List<UserStatus>>
 
-    fun getConnectedSessionId(): String?
+    fun getConnectedSessionData(): Pair<String, String>?
 }

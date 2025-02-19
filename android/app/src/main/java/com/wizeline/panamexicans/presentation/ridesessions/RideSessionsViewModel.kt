@@ -47,7 +47,6 @@ class RideSessionsViewModel @Inject constructor(
                 } else {
                     getRideSessions()
                 }
-
             }
 
             is RideSessionsUiEvents.OnSessionClicked -> {
@@ -74,11 +73,6 @@ class RideSessionsViewModel @Inject constructor(
                 _uiState.update { it.copy(sessionUserStatus = users) }
             }
         }
-    }
-
-    override fun onCleared() {
-        leaveCurrentSession()
-        super.onCleared()
     }
 
     private fun leaveCurrentSession() {

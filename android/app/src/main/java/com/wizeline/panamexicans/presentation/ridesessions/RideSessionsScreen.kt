@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -59,7 +60,6 @@ fun RideSessionsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             PrimaryColorButton(
@@ -88,7 +88,7 @@ fun RideSessionsScreen(
             ElevatedCard(
                 modifier = Modifier
                     .fillMaxSize(),
-                colors = CardDefaults.elevatedCardColors(containerColor = LightBlue),
+                colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
             ) {
                 when (uiState.rideSessionContainerState) {
                     RideSessionContainerState.SESSION_LIST -> {

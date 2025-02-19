@@ -1,6 +1,7 @@
 package com.wizeline.panamexicans.presentation.iconupdater
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Star
@@ -35,7 +36,7 @@ fun IconUpdaterScreen(
     onEvent: (IconUpdaterUiEvents) -> Unit,
     uiState: IconUpdaterUiState
 ) {
-    Box {
+    Box(modifier = Modifier.fillMaxSize()) {
         SubscriptionIconButton(modifier = Modifier.align(Alignment.Center), uiState, onEvent)
     }
 }

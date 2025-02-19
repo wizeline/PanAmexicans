@@ -8,6 +8,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.wizeline.panamexicans.presentation.main.map.MapRoot
+import com.wizeline.panamexicans.presentation.main.sessions.MapSessionsRoot
 
 @Composable
 fun MainNavHost(
@@ -27,7 +28,7 @@ fun MainNavHost(
             Text(text = "Route Generator")
         }
         composable(MainNavRoute.Sessions.toString()) {
-            Text(text = "Session")
+            MapSessionsRoot(viewModel = hiltViewModel())
         }
     }
 }

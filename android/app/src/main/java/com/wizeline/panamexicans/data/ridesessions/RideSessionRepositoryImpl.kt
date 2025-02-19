@@ -14,8 +14,11 @@ class RideSessionRepositoryImpl() : RideSessionRepository {
     override val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
     private var connectedRideSessionId: String? = null
+    private var connectedRideSessionName: String? = null
 
-    override fun getConnectedSessionId() = connectedRideSessionId
+    override fun getConnectedSessionData(): Pair<String, String>? =
+        if (connectedRideSessionName != null && connectedRideSessionId != null)
+            connectedRideSessionId.orEmpty() to connectedRideSessionName.orEmpty() else null
 
     override fun createRideSession(
         displayName: String,
@@ -38,6 +41,7 @@ class RideSessionRepositoryImpl() : RideSessionRepository {
             .add(rideSession)
             .addOnSuccessListener { documentReference ->
                 connectedRideSessionId = documentReference.id
+                connectedRideSessionName = displayName
                 db.collection(FirebaseCollections.RIDE_SESSIONS.name)
                     .document(documentReference.id)
                     .collection(FirebaseCollections.USERS.name)
@@ -75,8 +79,15 @@ class RideSessionRepositoryImpl() : RideSessionRepository {
             .addOnFailureListener { e -> onError(e) }
     }
 
-    override fun getRideSessionUsersFlow(rideSessionId: String): Flow<List<UserStatus>> =
-        callbackFlow {
+    override fun getRideSessionUsersFlow(rideSessionId: String): Flow<List<UserStatus>> {
+        db.collection(FirebaseCollections.RIDE_SESSIONS.name)
+            .document(rideSessionId)
+            .get()
+            .addOnSuccessListener { document ->
+                val rideSessionName = document.getString("rideSessionName") ?: ""
+                connectedRideSessionName = rideSessionName
+            }
+        return callbackFlow {
             val listenerRegistration = db.collection(FirebaseCollections.RIDE_SESSIONS.name)
                 .document(rideSessionId)
                 .collection(FirebaseCollections.USERS.name)
@@ -90,6 +101,7 @@ class RideSessionRepositoryImpl() : RideSessionRepository {
                 }
             awaitClose { listenerRegistration.remove() }
         }
+    }
 
     override fun getRideSessions(
         onSuccess: (List<Pair<String, RideSession>>) -> Unit,
@@ -127,6 +139,7 @@ class RideSessionRepositoryImpl() : RideSessionRepository {
         userRef.delete()
             .addOnSuccessListener {
                 connectedRideSessionId = null
+                connectedRideSessionName = null
                 sessionRef.collection(FirebaseCollections.USERS.name).get()
                     .addOnSuccessListener { snapshot ->
                         if (snapshot.isEmpty) {
@@ -140,5 +153,10 @@ class RideSessionRepositoryImpl() : RideSessionRepository {
                     .addOnFailureListener { e -> onError(e) }
             }
             .addOnFailureListener { e -> onError(e) }
+    }
+
+    override fun setAsConnectedInSession(sessionId: String, sessionName: String) {
+        connectedRideSessionId = sessionId
+        connectedRideSessionName = sessionName
     }
 }

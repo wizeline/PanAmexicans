@@ -44,8 +44,20 @@ class MapViewModel @Inject constructor(
 
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
-            locationResult.lastLocation?.let {
-                locationPreferenceManager.saveLocation(it.latitude, it.longitude)
+            locationResult.lastLocation?.let { location ->
+                locationPreferenceManager.saveLocation(location.latitude, location.longitude)
+                _uiState.value.sessionJointId?.let {
+                    rideSessionsRepository.updateRideSessionStatus(
+                        it,
+                        UserStatus(
+                            _uiState.value.firstName, _uiState.value.lastName,
+                            id = _uiState.value.myId.orEmpty(),
+                            lat = location.latitude,
+                            lon = location.longitude,
+                            status = _uiState.value.status
+                        )
+                    )
+                }
             }
             _uiState.update { it.copy(currentLocation = locationResult.lastLocation) }
         }
@@ -59,8 +71,6 @@ class MapViewModel @Inject constructor(
     }.build()
 
     init {
-        val isAlreadyInSession = rideSessionsRepository.getConnectedSessionId()
-        // connect directly
         startLocationUpdates()
         updatePreferenceLocationValues()
         viewModelScope.launch {
@@ -71,9 +81,17 @@ class MapViewModel @Inject constructor(
                         myId = userData.id,
                         firstName = userData.firstName.orEmpty(),
                         lastName = userData.lastName.orEmpty(),
+                        status = RideSessionStatus.RIDING.name
                     )
                 }
             }
+        }
+    }
+
+    fun refreshSessionIfConnected() {
+        val isAlreadyInSession = rideSessionsRepository.getConnectedSessionData()?.first
+        if (isAlreadyInSession != null && isAlreadyInSession != _uiState.value.sessionJointId) {
+            subscribeToRideSessionUsers(isAlreadyInSession)
         }
     }
 
@@ -154,6 +172,15 @@ class MapViewModel @Inject constructor(
     private fun subscribeToRideSessionUsers(rideSessionId: String) {
         rideSessionUsersJob?.cancel()
         rideSessionUsersJob = viewModelScope.launch {
+            val sessionName = rideSessionsRepository.getConnectedSessionData()?.second
+            sessionName?.let {
+                _uiState.update {
+                    it.copy(
+                        rideSessionTitle = sessionName,
+                        sessionJointId = rideSessionId
+                    )
+                }
+            }
             rideSessionsRepository.getRideSessionUsersFlow(rideSessionId).collect { users ->
                 Log.d("TAG", "subscribeToRideSessionUsers: updatingValues")
                 _uiState.update { it.copy(sessionUserStatus = users) }

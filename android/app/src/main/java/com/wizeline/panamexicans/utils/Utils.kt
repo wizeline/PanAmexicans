@@ -1,6 +1,13 @@
 package com.wizeline.panamexicans.utils
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.location.Location
+import androidx.core.content.ContextCompat
+import com.google.android.gms.maps.MapsInitializer
+import com.google.android.gms.maps.model.BitmapDescriptor
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import kotlin.random.Random
 
@@ -24,4 +31,19 @@ fun getRandomCoordinateInSanFrancisco(): LatLng {
 
 fun Location.toLatLng(): LatLng {
     return LatLng(latitude, longitude)
+}
+
+fun getBitmapDescriptorFromVector(
+    context: Context,
+    vectorResId: Int,
+    width: Int,
+    height: Int
+): BitmapDescriptor? {
+    MapsInitializer.initialize(context)
+    val vectorDrawable = ContextCompat.getDrawable(context, vectorResId) ?: return null
+    vectorDrawable.setBounds(0, 0, width, height)
+    val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+    vectorDrawable.draw(canvas)
+    return BitmapDescriptorFactory.fromBitmap(bitmap)
 }
