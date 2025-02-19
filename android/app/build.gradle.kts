@@ -100,6 +100,11 @@ dependencies {
     implementation(libs.play.services.location)
     kapt("com.google.dagger:hilt-android-compiler:2.51.1")
 
+    // Glance
+    implementation("androidx.glance:glance-appwidget:1.1.0") // For AppWidgets support
+    implementation("androidx.glance:glance-material3:1.1.0") // For interop APIs with Material 3
+    implementation("androidx.glance:glance-material:1.1.0") // For interop APIs with Material 2
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

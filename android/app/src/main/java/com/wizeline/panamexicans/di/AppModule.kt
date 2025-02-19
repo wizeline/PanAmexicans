@@ -16,6 +16,9 @@ import com.wizeline.panamexicans.data.userdata.UserDataRepository
 import com.wizeline.panamexicans.data.userdata.UserDataRepositoryImpl
 import com.wizeline.panamexicans.di.NetworkModule.provideDirectionsService
 import com.wizeline.panamexicans.di.NetworkModule.provideRetrofit
+import com.wizeline.panamexicans.presentation.widget.PanAmexWidgetUpdater
+import com.wizeline.panamexicans.presentation.widget.PanAmexWidgetUpdaterImpl
+import com.wizeline.panamexicans.presentation.widget.WidgetMockRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -61,4 +64,16 @@ object AppModule {
     @Provides
     fun providesLocationPreferenceManager(@ApplicationContext context: Context):
             LocationPreferenceManager = LocationPreferenceManager(context)
+
+    @Singleton
+    @Provides
+    fun providesWidgetRepository(): WidgetMockRepository =
+        WidgetMockRepository()
+
+    @Singleton
+    @Provides
+    fun providesWidgetUpdater(
+        @ApplicationContext context: Context
+    ): PanAmexWidgetUpdater =
+        PanAmexWidgetUpdaterImpl(context)
 }

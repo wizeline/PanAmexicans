@@ -1,6 +1,5 @@
 package com.wizeline.panamexicans.presentation.widget
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -9,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
+import com.wizeline.panamexicans.presentation.composables.PrimaryColorButton
 
 @Composable
 fun WidgetRoot(navController: NavController, viewModel: WidgetViewModel) {
@@ -18,6 +18,9 @@ fun WidgetRoot(navController: NavController, viewModel: WidgetViewModel) {
         uiState = uiState,
         onEvent = { event ->
             when (event) {
+                is WidgetUiEvents.OnClick -> {
+                    viewModel.updateWidget()
+                }
                 else -> Unit
             }
         }
@@ -30,7 +33,7 @@ fun WidgetScreen(
     uiState: WidgetUiState
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-
+        PrimaryColorButton(text = "Update widget miles", onClick = { onEvent(WidgetUiEvents.OnClick)})
     }
 }
 
