@@ -16,6 +16,8 @@ import com.wizeline.panamexicans.data.userdata.UserDataRepository
 import com.wizeline.panamexicans.data.userdata.UserDataRepositoryImpl
 import com.wizeline.panamexicans.di.NetworkModule.provideDirectionsService
 import com.wizeline.panamexicans.di.NetworkModule.provideRetrofit
+import com.wizeline.panamexicans.presentation.crashdetector.CrashDetector
+import com.wizeline.panamexicans.presentation.crashdetector.CrashDetectorManager
 import com.wizeline.panamexicans.presentation.widget.PanAmexWidgetUpdater
 import com.wizeline.panamexicans.presentation.widget.PanAmexWidgetUpdaterImpl
 import com.wizeline.panamexicans.presentation.widget.WidgetMockRepository
@@ -76,4 +78,12 @@ object AppModule {
         @ApplicationContext context: Context
     ): PanAmexWidgetUpdater =
         PanAmexWidgetUpdaterImpl(context)
+
+
+    @Singleton
+    @Provides
+    fun providesCrashDetectorManager(
+        @ApplicationContext context: Context
+    ): CrashDetector = CrashDetectorManager(context)
+
 }
