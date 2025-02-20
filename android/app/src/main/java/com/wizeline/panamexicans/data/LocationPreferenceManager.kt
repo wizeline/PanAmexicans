@@ -29,7 +29,7 @@ class LocationPreferenceManager(context: Context) {
 
     fun saveSpeed(speed: Float) {
         sharedPreferences.edit().apply {
-            putFloat(KEY_LATITUDE, speed)
+            putFloat(KEY_SPEED, speed)
             apply()
         }
     }
