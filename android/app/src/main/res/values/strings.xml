@@ -21,4 +21,6 @@
     <string name="name">Name</string>
     <string name="invalid_name">Name field is required</string>
     <string name="last_name">Lastname</string>
+    <string name="example_appwidget_description">PanAmexicans widget description</string>
+    <string name="you_have_miles">You have %s Miles</string>
 </resources>
