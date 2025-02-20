@@ -37,11 +37,11 @@ class CrashDetectorManager(
 
     override fun onSensorChanged(event: SensorEvent?) {
         event?.let {
-            fallWaitGood(event = it)
+            fallDetector(event = it)
         }
     }
 
-    private fun fallWaitGood(event: SensorEvent) {
+    private fun fallDetector(event: SensorEvent) {
         val x = event.values[0]
         val y = event.values[1]
         val z = event.values[2]
@@ -52,9 +52,7 @@ class CrashDetectorManager(
         // Check if the phone is in free fall (acceleration less than threshold, e.g., 2 m/s²)
         if (acceleration < 2.0) {
             if (!isFalling) {
-                // Fall started: Set isFalling to true and record the timestamp
                 isFalling = true
-                // Get current timestamp and format it
                 _crashState.update {
                     it.copy(
                         isFalling = isFalling,
@@ -64,10 +62,9 @@ class CrashDetectorManager(
             }
         } else {
             if (isFalling) {
-                // The fall has finished (acceleration above threshold)
-                // Wait for a short time (e.g., 1 second) before resetting
-                if (System.currentTimeMillis() - lastFallTime > 500) { // Time threshold to confirm fall is over
-                    isFalling = false // Reset fall detection after the delay
+                // The fall has finished with time threshold (acceleration above threshold)
+                if (System.currentTimeMillis() - lastFallTime > 500) {
+                    isFalling = false
                     val timestamp = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
                     _crashState.update {
                         it.copy(
@@ -80,9 +77,8 @@ class CrashDetectorManager(
             }
         }
 
-        // Save the current time when the fall ends
         if (!isFalling) {
-            lastFallTime = System.currentTimeMillis() // Record time when fall finishes
+            lastFallTime = System.currentTimeMillis()
         }
     }
 
