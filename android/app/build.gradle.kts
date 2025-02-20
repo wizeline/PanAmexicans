@@ -6,6 +6,7 @@ plugins {
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
     id("com.google.gms.google-services")
+    kotlin("plugin.serialization") version "1.8.0"
 }
 
 val localProperties = Properties().apply {
@@ -16,6 +17,7 @@ val localProperties = Properties().apply {
 }
 
 val mapsApiKey: String = localProperties.getProperty("MAPS_API_KEY", "")
+val geminiApiKey: String = localProperties.getProperty("GEMINI_API_KEY", "")
 
 android {
     namespace = "com.wizeline.panamexicans"
@@ -34,6 +36,7 @@ android {
 
         resValue("string", "maps_api_key", mapsApiKey)
         buildConfigField("String", "MAPS_API_KEY", "\"$mapsApiKey\"")
+        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -83,6 +86,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation("io.coil-kt:coil:2.2.2")
     implementation("io.coil-kt:coil-svg:2.2.2")
+    implementation("io.coil-kt:coil-compose:2.2.2")
     implementation ("androidx.compose.material3:material3:1.2.0-alpha12")
 
     //Retrofit
@@ -103,6 +107,8 @@ dependencies {
     implementation(libs.firebase.firestore.ktx)
     implementation("com.google.maps.android:maps-compose:4.4.1")
     implementation(libs.play.services.location)
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
+    implementation("com.google.code.gson:gson:2.10")
 
     // Glance
     implementation("androidx.glance:glance-appwidget:1.1.0") // For AppWidgets support

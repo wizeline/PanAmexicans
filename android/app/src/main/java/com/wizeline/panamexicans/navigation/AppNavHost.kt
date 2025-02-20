@@ -10,6 +10,8 @@ import com.wizeline.panamexicans.presentation.home.HomeRoot
 import com.wizeline.panamexicans.presentation.login.LoginRoot
 import com.wizeline.panamexicans.presentation.main.MainRoot
 import com.wizeline.panamexicans.presentation.main.MainViewModel
+import com.wizeline.panamexicans.presentation.profile.ProfileRoot
+import com.wizeline.panamexicans.presentation.profile.ProfileViewModel
 import com.wizeline.panamexicans.presentation.splash.SplashScreenRoot
 import com.wizeline.panamexicans.presentation.splash.SplashScreenViewModel
 
@@ -37,6 +39,10 @@ fun AppNavHost(
         composable(AppNavRoute.MAIN.name) {
             val viewModel: MainViewModel = hiltViewModel()
             MainRoot(navController, viewModel)
+        }
+        composable(AppNavRoute.PROFILE.name) {
+            val viewModel: ProfileViewModel = hiltViewModel()
+            ProfileRoot(viewModel)
         }
     }
 }

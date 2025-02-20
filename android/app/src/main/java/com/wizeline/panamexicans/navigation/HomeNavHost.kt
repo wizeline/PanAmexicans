@@ -13,8 +13,6 @@ import com.wizeline.panamexicans.presentation.home.HomeContentRoot
 import com.wizeline.panamexicans.presentation.home.HomeContentViewModel
 import com.wizeline.panamexicans.presentation.iconupdater.IconUpdaterRoot
 import com.wizeline.panamexicans.presentation.iconupdater.IconUpdaterViewModel
-import com.wizeline.panamexicans.presentation.main.MainRoot
-import com.wizeline.panamexicans.presentation.main.MainViewModel
 import com.wizeline.panamexicans.presentation.ridesessions.RideSessionsRoot
 import com.wizeline.panamexicans.presentation.ridesessions.RideSessionsViewModel
 import com.wizeline.panamexicans.presentation.routecalculator.RouteCalculatorRoot

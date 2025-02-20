@@ -24,7 +24,9 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.wizeline.panamexicans.navigation.AppNavRoute
 import com.wizeline.panamexicans.navigation.MainNavHost
+import com.wizeline.panamexicans.navigation.MainNavRoute
 
 @Composable
 fun MainRoot(navController: NavController, viewModel: MainViewModel) {
@@ -36,6 +38,10 @@ fun MainRoot(navController: NavController, viewModel: MainViewModel) {
         onEvent = { event ->
             viewModel.onEvent(event)
             when (event) {
+                MainUiEvents.OnProfileClicked -> {
+                    navController.navigate(AppNavRoute.PROFILE.name)
+                }
+
                 else -> Unit
             }
         }

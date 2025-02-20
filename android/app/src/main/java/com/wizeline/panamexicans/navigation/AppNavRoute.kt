@@ -4,5 +4,6 @@ enum class AppNavRoute {
     SPLASH,
     LOGIN,
     HOME,
-    MAIN
+    MAIN,
+    PROFILE
 }

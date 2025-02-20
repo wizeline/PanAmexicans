@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.unit.dp
 import com.wizeline.panamexicans.presentation.theme.DarkBlue
+import com.wizeline.panamexicans.presentation.theme.Orange
 
 @Composable
 fun PrimaryColorButton(
@@ -25,7 +26,7 @@ fun PrimaryColorButton(
         onClick = { onClick() },
         contentPadding = PaddingValues(vertical = 11.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = DarkBlue
+            containerColor = Orange
         )
     ) {
         Text(
