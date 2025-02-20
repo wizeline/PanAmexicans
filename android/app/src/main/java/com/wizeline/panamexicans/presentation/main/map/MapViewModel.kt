@@ -45,6 +45,7 @@ class MapViewModel @Inject constructor(
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
             locationResult.lastLocation?.let { location ->
+
                 locationPreferenceManager.saveLocation(location.latitude, location.longitude)
                 _uiState.value.sessionJointId?.let {
                     rideSessionsRepository.updateRideSessionStatus(
