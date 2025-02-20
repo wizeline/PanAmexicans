@@ -11,6 +11,7 @@ import MapKit
 final class LocationManager: NSObject, ObservableObject {
     @Published var lastKnownLocation: CLLocationCoordinate2D?
     private let manager = CLLocationManager()
+    private var lastLocation: CLLocation?
 
     // MARK: - Initializers
     override init() {
@@ -28,7 +29,17 @@ final class LocationManager: NSObject, ObservableObject {
 // MARK: - LocationManager+CLLocationManagerDelegate
 extension LocationManager: CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        lastKnownLocation = locations.last?.coordinate
+        guard let newLocation = locations.last, shouldAdd(newLocation) else { return }
+
+        lastLocation = newLocation
+        lastKnownLocation = newLocation.coordinate
+    }
+
+    private func shouldAdd(_ newLocation: CLLocation) -> Bool {
+        guard let lastLocation else { return true }
+
+        let secondsSinceLastUpdate = Date.now.timeIntervalSince(lastLocation.timestamp)
+        return secondsSinceLastUpdate > 2
     }
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {

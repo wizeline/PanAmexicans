@@ -12,6 +12,10 @@ final class RideSessionViewModel: ObservableObject {
     @Published var rideSessions: [RideSession] = []
     @Published var rideSessionUsers: [UserStatus] = []
 
+    var userId: String {
+        userData.id
+    }
+
     private let userData: UserData
     private let rideSessionRepository: RideSessionRepository
 

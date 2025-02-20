@@ -17,10 +17,12 @@ struct MapView: View {
             UserAnnotation()
 
             ForEach(rideSessionViewModel.rideSessionUsers, id: \.id) { user in
-                Annotation(user.firstName, coordinate: .init(latitude: user.lat, longitude: user.lon)) {
-                    Circle()
-                        .foregroundStyle(Color.purple)
-                        .frame(width: 20, height: 20)
+                if user.id != rideSessionViewModel.userId {
+                    Annotation(user.firstName, coordinate: .init(latitude: user.lat, longitude: user.lon)) {
+                        Circle()
+                            .foregroundStyle(Color.purple)
+                            .frame(width: 20, height: 20)
+                    }
                 }
             }
         }
