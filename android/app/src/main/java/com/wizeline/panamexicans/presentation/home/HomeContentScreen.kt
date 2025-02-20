@@ -1,5 +1,10 @@
 package com.wizeline.panamexicans.presentation.home
 
+import android.Manifest
+import android.os.Build
+import android.os.Build.VERSION_CODES.TIRAMISU
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,13 +16,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.wizeline.panamexicans.navigation.HomeNavRoute
 import com.wizeline.panamexicans.navigation.AppNavRoute
+import com.wizeline.panamexicans.navigation.HomeNavRoute
 import com.wizeline.panamexicans.presentation.composables.PrimaryColorButton
 
 @Composable
@@ -138,6 +146,29 @@ fun HomeContentScreen(
                 text = "Logout",
                 onClick = { onEvent(HomeContentUiEvents.OnLogoutClicked) })
         }
+        RequestPermissions()
+    }
+}
+
+@Composable
+fun RequestPermissions() {
+    var allPermissionsGranted by remember { mutableStateOf(false) }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        allPermissionsGranted = permissions.entries.all { it.value }
+    }
+
+    val requiredPermissions: MutableList<String> = mutableListOf()
+    requiredPermissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
+    requiredPermissions.add(Manifest.permission.ACCESS_COARSE_LOCATION)
+    if (Build.VERSION.SDK_INT >= TIRAMISU) {
+        requiredPermissions.add(Manifest.permission.POST_NOTIFICATIONS)
+    }
+
+    LaunchedEffect(Unit) {
+        permissionLauncher.launch(requiredPermissions.toTypedArray())
     }
 }
 

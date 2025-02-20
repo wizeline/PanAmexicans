@@ -256,7 +256,7 @@ fun ThreeButtonDialog(
                 Spacer(modifier = Modifier.height(16.dp))
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.SpaceEvenly,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     PrimaryColorButton(

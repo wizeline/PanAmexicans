@@ -12,13 +12,12 @@ import com.google.android.gms.maps.MapsInitializer
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sin
+import kotlin.math.sqrt
 import kotlin.random.Random
-
-fun getRandomLatLng(): Pair<Double, Double> {
-    val latitude = Random.nextDouble(-90.0, 90.0)
-    val longitude = Random.nextDouble(-180.0, 180.0)
-    return Pair(latitude, longitude)
-}
 
 fun getRandomCoordinateInSanFrancisco(): LatLng {
     val minLat = 37.703399
@@ -66,4 +65,19 @@ fun callEmergency(context: Context) {
     } else {
         Toast.makeText(context, "No dialer available", Toast.LENGTH_SHORT).show()
     }
+}
+
+fun calculateDistance(lat1: Double?, lon1: Double?, lat2: Double?, lon2: Double?): Double? {
+    if (lat2 == null || lon2 == null) {
+        return null
+    }
+
+    val earthRadius = 6371e3
+    val dLat = Math.toRadians(lat2.minus(lat1 ?: 0.0))
+    val dLon = Math.toRadians(lon2.minus(lon1 ?: 0.0))
+    val a = sin(dLat / 2).pow(2.0) +
+            cos(Math.toRadians(lat1 ?: 0.0)) * cos(Math.toRadians(lat2)) *
+            sin(dLon / 2).pow(2.0)
+    val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    return earthRadius * c
 }
