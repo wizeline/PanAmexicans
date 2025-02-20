@@ -1,7 +1,7 @@
 package com.wizeline.panamexicans.presentation.widget
 
 data class PanAmexWidgetUiState(
-    val miles: Int
+    val miles: Int? = null
 )
 
 sealed interface PanAmexWidgetState {

@@ -15,7 +15,6 @@ import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.LinearProgressIndicator
 import androidx.glance.appwidget.provideContent
-import androidx.glance.background
 import androidx.glance.currentState
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
@@ -32,12 +31,12 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.wizeline.panamexicans.MainActivity
 import com.wizeline.panamexicans.R
+import com.wizeline.panamexicans.presentation.theme.Orange
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+
 
 class PanAmexAppWidget : GlanceAppWidget() {
 
@@ -45,7 +44,6 @@ class PanAmexAppWidget : GlanceAppWidget() {
         val pref_miles_widget = intPreferencesKey("widget_miles_key")
     }
 
-    // a way to get hilt inject what you need in non-supported class
     @EntryPoint
     @InstallIn(SingletonComponent::class)
     interface WidgetMockRepositoryEntryPoint {
@@ -56,9 +54,6 @@ class PanAmexAppWidget : GlanceAppWidget() {
 
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        //default value
-        var miles = 0
-        //get settings repository from hilt
         val appContext = context.applicationContext ?: throw IllegalStateException()
         val widgetEntryPoint =
             EntryPointAccessors.fromApplication(
@@ -66,11 +61,7 @@ class PanAmexAppWidget : GlanceAppWidget() {
                 WidgetMockRepositoryEntryPoint::class.java,
             )
         val widgetRepository = widgetEntryPoint.getRepository()
-
-        //set value
-        withContext(Dispatchers.IO) {
-            miles = widgetRepository.getMiles()
-        }
+        val miles = widgetRepository.widgetState.value.miles ?: 0
 
         provideContent {
             val prefs = currentState<Preferences>()
@@ -79,8 +70,6 @@ class PanAmexAppWidget : GlanceAppWidget() {
         }
     }
 
-    val OrangeColor = Color(0xFFFFA500)
-
     @Composable
     private fun PanAmexicansWidget(miles: Int) {
         Box(modifier = GlanceModifier.fillMaxSize()) {
@@ -88,7 +77,7 @@ class PanAmexAppWidget : GlanceAppWidget() {
                 modifier = GlanceModifier.fillMaxSize(),
                 provider = ImageProvider(R.drawable.splash_background),
                 contentScale = ContentScale.Crop,
-                contentDescription = "Sample Image"
+                contentDescription = ""
             )
             Column(
                 modifier = GlanceModifier
@@ -98,21 +87,21 @@ class PanAmexAppWidget : GlanceAppWidget() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "You have ${miles} Miles",
+                    text = "You have $miles Miles",
                     modifier = GlanceModifier.padding(12.dp),
                     style = TextStyle(color = ColorProvider(color = Color.White))
                 )
+
+                val progressPercentage = miles / 100f
                 LinearProgressIndicator(
                     modifier = GlanceModifier.fillMaxWidth().height(50.dp).padding(5.dp),
-                    progress = miles / 100f,
-                    color = ColorProvider(OrangeColor),
+                    progress = progressPercentage,
+                    color = ColorProvider(Orange),
                     backgroundColor = ColorProvider(Color.Black)
                 )
 
             }
 
         }
-
     }
-
 }

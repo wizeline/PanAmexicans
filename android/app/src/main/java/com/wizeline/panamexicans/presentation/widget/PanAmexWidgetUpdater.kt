@@ -15,7 +15,7 @@ class PanAmexWidgetUpdaterImpl(
         GlanceAppWidgetManager(context = context).getGlanceIds(PanAmexAppWidget::class.java)
             .forEach { glanceId ->
                 updateAppWidgetState(context, glanceId) { prefs ->
-                    prefs[PanAmexAppWidget.pref_miles_widget] = uiState.miles
+                    prefs[PanAmexAppWidget.pref_miles_widget] = uiState.miles ?: 0
                 }
                 PanAmexAppWidget().update(context, glanceId)
             }
