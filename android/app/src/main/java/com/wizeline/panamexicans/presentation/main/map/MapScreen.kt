@@ -1,7 +1,16 @@
 package com.wizeline.panamexicans.presentation.main.map
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.Build
+import android.util.Log
+import androidx.activity.compose.LocalActivity
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -12,25 +21,35 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.core.content.ContextCompat
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.CameraPosition
@@ -48,6 +67,12 @@ import com.wizeline.panamexicans.data.ridesessions.RideSessionStatus
 import com.wizeline.panamexicans.presentation.composables.PrimaryColorButton
 import com.wizeline.panamexicans.utils.callEmergency
 import com.wizeline.panamexicans.utils.getBitmapDescriptorFromVector
+import com.wizeline.panamexicans.voice.Constants.ACTIVE_LISTENING_ON
+import com.wizeline.panamexicans.voice.Constants.STOP_VOICE_SERVICE
+import com.wizeline.panamexicans.voice.Constants.TTS_RESPONSE
+import com.wizeline.panamexicans.voice.SpeechToTextManager
+import com.wizeline.panamexicans.voice.TextToSpeechService
+import com.wizeline.panamexicans.voice.VoiceInteractionService
 import kotlinx.coroutines.launch
 
 @Composable
@@ -68,6 +93,13 @@ fun MapRoot(modifier: Modifier = Modifier, viewModel: MapViewModel) {
                     callEmergency(context)
                 }
 
+                is MapUiEvents.OnToggleVoiceAssistant -> {
+                    if (uiState.voiceAssistantEnabled) {
+                        startVoiceService(context)
+                    } else {
+                        stopVoiceService(context)
+                    }
+                }
                 else -> Unit
             }
         }
@@ -79,7 +111,93 @@ fun MapScreen(
     onEvent: (MapUiEvents) -> Unit,
     uiState: MapUiState
 ) {
+    var ttsService: TextToSpeechService? = null
     val context = LocalContext.current
+    val activity = LocalActivity.current
+    ttsService = TextToSpeechService(activity!!)
+    DisposableEffect(context) {
+        // Definimos el BroadcastReceiver
+        val serviceStateReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                when (intent?.action) {
+                    STOP_VOICE_SERVICE -> {
+                        //viewModel.updateSoftListening(false)
+                    }
+
+                    TTS_RESPONSE -> {
+                        val response = intent.getStringExtra("response")
+                        if (response != null) {
+                            //renderUI()
+                            //ttsService?.speak(response)
+                        }
+                    }
+
+                    ACTIVE_LISTENING_ON -> {
+                        if (context == null) return
+                        //viewModel.updateActiveListening(true)
+                        val speechManager = SpeechToTextManager(context)
+                        speechManager.startListening(
+                            onResult = { recognizedText ->
+                                Log.d("VoiceService", "Texto reconocido: $recognizedText")
+                                onEvent(MapUiEvents.OnInstructionReceived(recognizedText))
+                                //viewModel.generateResponseFromPrompt(recognizedText)
+                                startVoiceService(
+                                    context
+                                )
+                                //ttsService.speak(recognizedText)
+                                //viewModel.synthesizeSpeech(recognizedText)
+                            },
+                            onError = { errorMsg ->
+                                Log.e("VoiceService", errorMsg)
+                            },
+                            onSilenceDetected = {
+                                Log.d("VoiceService", "Silence detected")
+                                //viewModel.updateActiveListening(false)
+                                speechManager.stopListening()
+                                startVoiceService(context)
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
+        val intentFilter = IntentFilter().apply {
+            addAction(STOP_VOICE_SERVICE)
+            addAction(TTS_RESPONSE)
+            addAction(ACTIVE_LISTENING_ON)
+        }
+        ContextCompat.registerReceiver(
+            context,
+            serviceStateReceiver,
+            intentFilter,
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.registerReceiver(
+                serviceStateReceiver,
+                intentFilter,
+                Context.RECEIVER_NOT_EXPORTED
+            )
+        } else {
+            context.registerReceiver(
+                serviceStateReceiver,
+                intentFilter
+            )
+        }
+
+        // En onDispose desregistramos el receptor para evitar fugas de memoria
+        onDispose {
+            context.unregisterReceiver(serviceStateReceiver)
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            ttsService.shutdown()
+        }
+    }
     val cameraPositionState = rememberCameraPositionState {
         position =
             CameraPosition.fromLatLngZoom(
@@ -177,6 +295,23 @@ fun MapScreen(
                 )
             }
         }
+        IconButton(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 80.dp, end = 8.dp)
+                .size(64.dp),
+            onClick = { onEvent(MapUiEvents.OnToggleVoiceAssistant) },
+            colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.background),
+        ) {
+            Icon(
+                tint = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier
+                    .size(64.dp)
+                    .padding(6.dp),
+                painter = painterResource(id = if (uiState.voiceAssistantEnabled) R.drawable.ic_mic_off else R.drawable.ic_mic_on),
+                contentDescription = null
+            )
+        }
         if (uiState.rideSessionTitle.isNotBlank()) {
             Text(
                 modifier = Modifier
@@ -216,6 +351,15 @@ fun MapScreen(
                 },
                 onCancel = { onEvent(MapUiEvents.OnDismissDialog) }
             )
+        }
+        if (uiState.sessionJointId != null) {
+            ExpandableStatusFab(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(bottom = 186.dp, end = 8.dp),
+                statusOptions = uiState.statusOptions,
+                selectedOption = uiState.status,
+                onStatusChange = { onEvent(MapUiEvents.OnStatusChanged(it)) })
         }
     }
 }
@@ -340,6 +484,86 @@ fun AnimatedMarker(
             false
         }
     )
+}
+
+@Composable
+fun ExpandableStatusFab(
+    modifier: Modifier,
+    statusOptions: List<RideSessionStatus>,
+    selectedOption: String,
+    onStatusChange: (status: String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    val options = statusOptions.map { status ->
+        when (status) {
+            RideSessionStatus.RIDING -> status.name to R.drawable.ic_biker_me
+            RideSessionStatus.BATHROOM -> status.name to R.drawable.ic_bathroom_state
+            RideSessionStatus.LUNCH -> status.name to R.drawable.ic_lunch
+            RideSessionStatus.DANGER -> status.name to R.drawable.ic_warning
+        }
+    }
+
+    Column(
+        horizontalAlignment = Alignment.End,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = modifier
+    ) {
+        // Animated visibility for the expanded mini-FABs
+        AnimatedVisibility(
+            visible = expanded,
+            enter = androidx.compose.animation.fadeIn(animationSpec = tween(300)),
+            exit = androidx.compose.animation.fadeOut(animationSpec = tween(300))
+        ) {
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                options.filter { it.first != selectedOption }.forEach { (status, icon) ->
+                    FloatingActionButton(
+                        onClick = {
+                            onStatusChange(status)
+                            expanded = false // Collapse after selection
+                        },
+                        modifier = Modifier.size(48.dp),
+                        containerColor = MaterialTheme.colorScheme.background,
+                    ) {
+                        Image(
+                            modifier = Modifier.padding(6.dp),
+                            painter = painterResource(id = icon),
+                            contentDescription = status,
+                        )
+                    }
+                }
+            }
+        }
+        // Main FAB that toggles the expanded state
+        FloatingActionButton(
+            modifier = Modifier.size(64.dp),
+            onClick = { expanded = !expanded },
+            containerColor = MaterialTheme.colorScheme.background,
+        ) {
+            Image(
+                modifier = Modifier.padding(6.dp),
+                painter = painterResource(id = options.first { it.first == selectedOption }.second),
+                contentDescription = if (expanded) "Close Menu" else "Change Status",
+            )
+        }
+    }
+}
+
+fun startVoiceService(context: Context) {
+    val intent = Intent(context, VoiceInteractionService::class.java)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        ContextCompat.startForegroundService(context, intent)
+    } else {
+        context.startService(intent)
+    }
+}
+
+fun stopVoiceService(context: Context) {
+    val intent = Intent(context, VoiceInteractionService::class.java)
+    context.stopService(intent)
 }
 
 @Preview(showBackground = true)

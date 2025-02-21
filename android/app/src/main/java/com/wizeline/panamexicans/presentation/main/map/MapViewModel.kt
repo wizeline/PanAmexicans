@@ -20,6 +20,9 @@ import com.wizeline.panamexicans.data.ridesessions.RideSessionRepository
 import com.wizeline.panamexicans.data.ridesessions.RideSessionStatus
 import com.wizeline.panamexicans.data.shareddata.SharedDataRepository
 import com.wizeline.panamexicans.data.userdata.UserDataRepository
+import com.wizeline.panamexicans.data.voiceassistant.NavigationAction
+import com.wizeline.panamexicans.data.voiceassistant.NavigationCommand
+import com.wizeline.panamexicans.data.voiceassistant.VoiceAssistantRepository
 import com.wizeline.panamexicans.presentation.crashdetector.CrashDetector
 import com.wizeline.panamexicans.presentation.widget.PanAmexWidgetUiState
 import com.wizeline.panamexicans.presentation.widget.PanAmexWidgetUpdater
@@ -42,6 +45,7 @@ class MapViewModel @Inject constructor(
     private val fusedLocationClient: FusedLocationProviderClient,
     private val rideSessionsRepository: RideSessionRepository,
     private val userDataRepository: UserDataRepository,
+    private val voiceAssistantRepository: VoiceAssistantRepository,
     private val directionsRepository: DirectionsRepository,
     private val sharedDataRepository: SharedDataRepository,
     private val preferenceManager: SharedDataPreferenceManager,
@@ -156,7 +160,7 @@ class MapViewModel @Inject constructor(
         viewModelScope.launch {
             sharedDataRepository.selectedRouteFlow.collectLatest { selectedRoute ->
                 if (selectedRoute.isNotEmpty()) {
-                    onTakeMeThereClicked(selectedRoute)
+                    takeMeThere(selectedRoute)
                 }
             }
         }
@@ -193,6 +197,45 @@ class MapViewModel @Inject constructor(
 
     fun onEvent(event: MapUiEvents) {
         when (event) {
+            is MapUiEvents.OnToggleVoiceAssistant -> {
+                if (_uiState.value.voiceAssistantEnabled) {
+                    _uiState.update { it.copy(softListeningActive = true) }
+                } else {
+                    _uiState.update { it.copy(softListeningActive = false) }
+                }
+                _uiState.update { it.copy(voiceAssistantEnabled = !_uiState.value.voiceAssistantEnabled) }
+            }
+
+            is MapUiEvents.OnInstructionReceived -> {
+                viewModelScope.launch {
+                    val currentLocation =
+                        if (_uiState.value.currentLocation?.latitude != null && _uiState.value.currentLocation?.longitude != null) LatLng(
+                            _uiState.value.currentLocation?.latitude ?: 0.0,
+                            _uiState.value.currentLocation?.longitude ?: 0.0
+                        ) else null
+                    val navigationCommand = voiceAssistantRepository.runVoiceCommand(
+                        event.instruction,
+                        BuildConfig.GEMINI_API_KEY,
+                        currentLocation,
+                    )
+                    processCommand(navigationCommand)
+                }
+            }
+
+            is MapUiEvents.OnStatusChanged -> {
+                rideSessionsRepository.updateRideSessionStatus(
+                    uiState.value.sessionJointId.orEmpty(),
+                    UserStatus(
+                        _uiState.value.firstName, _uiState.value.lastName,
+                        id = _uiState.value.myId.orEmpty(),
+                        lat = _uiState.value.currentLocation?.latitude ?: 0.0,
+                        lon = _uiState.value.currentLocation?.longitude ?: 0.0,
+                        status = event.status
+                    )
+                )
+                _uiState.update { it.copy(status = event.status) }
+            }
+
             is MapUiEvents.OnPoiClicked -> {
                 _uiState.update { it.copy(displayPoiDialog = true, lastPoiClicked = event.poi) }
             }
@@ -202,7 +245,7 @@ class MapViewModel @Inject constructor(
             }
 
             is MapUiEvents.OnTakeMeThereClicked -> {
-                onTakeMeThereClicked(listOf(event.latlong))
+                takeMeThere(listOf(event.latlong))
             }
 
             is MapUiEvents.OnDangerClicked -> {
@@ -228,6 +271,61 @@ class MapViewModel @Inject constructor(
             }
 
             else -> Unit
+        }
+    }
+
+    private fun processCommand(command: NavigationCommand?) {
+        if (command == null) return
+        when (command.action) {
+            NavigationAction.ChangeStatusToDanger -> {
+                _uiState.update { it.copy(status = RideSessionStatus.DANGER.name) }
+                //active voice
+            }
+
+            NavigationAction.ChangeStatusToLunch -> {
+                _uiState.update { it.copy(status = RideSessionStatus.LUNCH.name) }
+
+            }
+
+            NavigationAction.ChangeStatusToRiding -> {
+                _uiState.update { it.copy(status = RideSessionStatus.RIDING.name) }
+
+            }
+
+            NavigationAction.ChangeStatusToBathroom -> {
+                _uiState.update { it.copy(status = RideSessionStatus.BATHROOM.name) }
+
+            }
+
+            NavigationAction.TakeMeToNextDealer -> {
+                if (command.lat != null && command.lon != null) {
+                    takeMeThere(listOf(LatLng(command.lat, command.lon)))
+
+                }
+            }
+
+            NavigationAction.TakeMeToNextGasStation -> {
+                if (command.lat != null && command.lon != null) {
+                    takeMeThere(listOf(LatLng(command.lat, command.lon)))
+
+                }
+            }
+
+            NavigationAction.CancelNavigation -> {
+                _uiState.update { it.copy(waypoints = null, routePoints = emptyList()) }
+
+            }
+
+            NavigationAction.SetDestination -> {
+                if (command.lat != null && command.lon != null) {
+                    takeMeThere(listOf(LatLng(command.lat, command.lon)))
+
+                }
+            }
+
+            NavigationAction.UnknownCommand -> {
+                Log.d("TAG", "processCommand: Could not process your command")
+            }
         }
     }
 
@@ -307,7 +405,7 @@ class MapViewModel @Inject constructor(
         }
     }
 
-    private fun onTakeMeThereClicked(waypoints: List<LatLng>) {
+    private fun takeMeThere(waypoints: List<LatLng>) {
         _uiState.update { it.copy(displayPoiDialog = false, displayDangerDialog = false) }
         val alreadyInRoute = _uiState.value.routePoints != null
         viewModelScope.launch {
@@ -361,6 +459,7 @@ data class MapUiState(
     val myId: String? = null,
     val cachedLocation: Location? = null,
     val currentLocation: Location? = null,
+    val statusOptions: List<RideSessionStatus> = enumValues<RideSessionStatus>().toList(),
     val firstName: String = "",
     val lastName: String = "",
     val status: String = "",
@@ -372,10 +471,12 @@ data class MapUiState(
     val lastDangerLatLng: LatLng? = null,
     val lastDangerName: String? = null,
     val lastPoiClicked: PointOfInterest? = null,
+    val softListeningActive: Boolean = false,
     val routePoints: List<LatLng>? = null,
     val waypoints: List<LatLng>? = null,
     val displayStartRideSession: Boolean = false,
-    val sessionUserStatus: List<UserStatus> = emptyList()
+    val sessionUserStatus: List<UserStatus> = emptyList(),
+    val voiceAssistantEnabled: Boolean = false
 ) {
     val riders: List<UserStatus>
         get() = sessionUserStatus
@@ -383,10 +484,13 @@ data class MapUiState(
 
 sealed interface MapUiEvents {
     data object OnDismissDialog : MapUiEvents
+    data object OnToggleVoiceAssistant : MapUiEvents
     data object OnCall911Clicked : MapUiEvents
     data object OnStartSharedSessionClicked : MapUiEvents
+
+    data class OnInstructionReceived(val instruction: String) : MapUiEvents
     data class OnPoiClicked(val poi: PointOfInterest) : MapUiEvents
     data class OnTakeMeThereClicked(val latlong: LatLng) : MapUiEvents
-
     data class OnDangerClicked(val targetPosition: LatLng, val name: String) : MapUiEvents
+    data class OnStatusChanged(val status: String) : MapUiEvents
 }
