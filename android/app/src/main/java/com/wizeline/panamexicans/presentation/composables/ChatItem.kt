@@ -1,5 +1,6 @@
 package com.wizeline.panamexicans.presentation.composables
 
+import android.widget.Space
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.FilterChip
@@ -30,6 +32,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -198,15 +202,17 @@ fun PreferencesItem(
                 )
             }
         }
-        Row(Modifier.fillMaxWidth()) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(text = "Available hours: ")
-            OutlinedTextField(
-                value = hoursAvailable.toString(),
+            Spacer(modifier = Modifier.height(8.dp))
+            BasicTextField(
+                value = if (hoursAvailable == 0) "" else hoursAvailable.toString(),
+                textStyle = MaterialTheme.typography.bodyLarge,
                 onValueChange = { newText -> onHoursChanged(newText) },
-                label = { Text("Enter text") },
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
+                    .width(64.dp)
+                    .background(Color.White)
+                    .padding(8.dp)
             )
         }
     }
@@ -301,15 +307,13 @@ private fun RouteItemPrev() {
     RouteItem(ChatBotResponseWithRouteImage("someUrl", route = null, emptyList()), false) {}
 }
 
-@Preview
+@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
 private fun PreferencesItemPrev() {
-    ChatItem(
-        ChatMessage(
-            response = ChatBotResponseWithRouteImage(
-                message = "the best route",
-                null, emptyList()
-            ),
-            author = Author.Bot
-        ), true, {}, {})
+    PreferencesItem(
+        onEvent = {},
+        selectedStates = emptyList(),
+        onHoursChanged = {},
+        hoursAvailable = 10,
+    )
 }

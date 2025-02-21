@@ -15,6 +15,7 @@ class SharedDataRepositoryImpl @Inject constructor(
     override val selectedRouteFlow: StateFlow<List<LatLng>> get() = _selectedRouteFlow
 
     override fun addMiles(miles: Float) {
+        if (miles > 500) return
         val currentMiles = preferenceManager.getMilesCounter()
         val newMiles = currentMiles + miles
         preferenceManager.storeMiles(newMiles)
