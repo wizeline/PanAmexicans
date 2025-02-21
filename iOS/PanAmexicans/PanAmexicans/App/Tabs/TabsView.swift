@@ -53,7 +53,11 @@ struct TabsView: View {
             }
 
             Tab("Premium", systemImage: "medal.fill") {
-                IconChangerView()
+                NavigationStack {
+                    IconChangerView()
+                        .navigationTitle("Premium")
+                        .toolbarVisibility(.visible, for: .navigationBar)
+                }
             }
         }
         .redacted(reason: isLoading ? .placeholder : [])

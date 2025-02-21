@@ -15,7 +15,12 @@ struct MapView: View {
     var body: some View {
         Map(initialPosition: .userLocation(fallback: .automatic)) {
             UserAnnotation { _ in
-                getBikeIcon(color: .accentColor)
+                VStack {
+                    getBikeIcon(color: .accentColor)
+
+                    Text("You")
+                        .font(.footnote)
+                }
             }
 
             ForEach(rideSessionViewModel.rideSessionUsers, id: \.id) { user in
@@ -41,7 +46,7 @@ struct MapView: View {
         Image("bike")
             .renderingMode(.template)
             .resizable()
-            .frame(width: 25, height: 25)
+            .frame(width: 30, height: 30)
             .foregroundStyle(color)
     }
 }
