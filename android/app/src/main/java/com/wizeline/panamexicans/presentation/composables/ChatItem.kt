@@ -27,7 +27,9 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -160,7 +162,9 @@ fun RouteItem(
 @Composable
 fun PreferencesItem(
     onEvent: (RouteGeneratorUiEvents) -> Unit,
-    selectedStates: List<Pair<String, Boolean>>
+    selectedStates: List<Pair<String, Boolean>>,
+    onHoursChanged: (String) -> Unit,
+    hoursAvailable: Int,
 ) {
     Column {
         Text(text = "Select your trip preferences")
@@ -196,7 +200,14 @@ fun PreferencesItem(
         }
         Row(Modifier.fillMaxWidth()) {
             Text(text = "Available hours: ")
-
+            OutlinedTextField(
+                value = hoursAvailable.toString(),
+                onValueChange = { newText -> onHoursChanged(newText) },
+                label = { Text("Enter text") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            )
         }
     }
 }

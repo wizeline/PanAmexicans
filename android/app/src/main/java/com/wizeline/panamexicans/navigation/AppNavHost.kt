@@ -31,7 +31,7 @@ fun AppNavHost(
             SplashScreenRoot(navController = navController, viewModel = viewModel)
         }
         composable(AppNavRoute.HOME.toString()) {
-            HomeRoot(navController =  navController, hiltViewModel())
+            HomeRoot(navController = navController, hiltViewModel())
         }
         composable(AppNavRoute.LOGIN.toString()) {
             LoginRoot(navController, hiltViewModel())
@@ -42,7 +42,7 @@ fun AppNavHost(
         }
         composable(AppNavRoute.PROFILE.name) {
             val viewModel: ProfileViewModel = hiltViewModel()
-            ProfileRoot(viewModel)
+            ProfileRoot(navController, viewModel)
         }
     }
 }

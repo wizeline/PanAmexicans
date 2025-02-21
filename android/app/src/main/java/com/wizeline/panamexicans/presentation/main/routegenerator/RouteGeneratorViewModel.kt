@@ -151,6 +151,7 @@ data class RouteGeneratorUiState(
         "Panoramic"
     ),
     val selectedStates: List<Pair<String, Boolean>> = emptyList(),
+    val availableHours: Int = 0,
     val messages: List<ChatMessage> = emptyList()
 )
 
@@ -158,4 +159,5 @@ sealed interface RouteGeneratorUiEvents {
     data class OnMessageSent(val userMessage: String) : RouteGeneratorUiEvents
     data class OnPreferenceClicked(val index: Int) : RouteGeneratorUiEvents
     data class OnTakeMeThereClicked(val waypoints: List<LatLng>) : RouteGeneratorUiEvents
+    data class OnAvailableHoursChanged(val hours: String) : RouteGeneratorUiEvents
 }

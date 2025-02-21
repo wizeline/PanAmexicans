@@ -93,6 +93,7 @@ class RideSessionRepositoryImpl() : RideSessionRepository {
                 .collection(FirebaseCollections.USERS.name)
                 .addSnapshotListener { snapshot, error ->
                     if (error != null) {
+                        trySend(emptyList())
                         close(error)
                         return@addSnapshotListener
                     }

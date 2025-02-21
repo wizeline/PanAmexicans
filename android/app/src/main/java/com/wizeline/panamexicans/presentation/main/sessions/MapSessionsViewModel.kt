@@ -11,6 +11,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -38,9 +39,15 @@ class MapSessionsViewModel @Inject constructor(
                 if (_uiState.value.sessionJointId != null) {
                     Log.d("TAG", "onEvent: already in a session")
                     leaveCurrentSession()
-                    subscribeToRideSessionUsers(rideSessionId = event.sessionId, sessionName = event.sessionName)
+                    subscribeToRideSessionUsers(
+                        rideSessionId = event.sessionId,
+                        sessionName = event.sessionName
+                    )
                 } else {
-                    subscribeToRideSessionUsers(rideSessionId = event.sessionId, sessionName = event.sessionName)
+                    subscribeToRideSessionUsers(
+                        rideSessionId = event.sessionId,
+                        sessionName = event.sessionName
+                    )
                 }
             }
 
@@ -57,7 +64,9 @@ class MapSessionsViewModel @Inject constructor(
     private fun subscribeToRideSessionUsers(rideSessionId: String, sessionName: String) {
         rideSessionUsersJob?.cancel()
         rideSessionUsersJob = viewModelScope.launch {
-            repository.getRideSessionUsersFlow(rideSessionId).collect { users ->
+            repository.getRideSessionUsersFlow(rideSessionId).catch { e ->
+                Log.e("MapViewModel", "getRideSessionUsersFlow error: ${e.message} ")
+            }.collect { users ->
                 Log.d("TAG", "subscribeToRideSessionUsers: updatingValues")
                 _uiState.update { it.copy(sessionUserStatus = users) }
             }
