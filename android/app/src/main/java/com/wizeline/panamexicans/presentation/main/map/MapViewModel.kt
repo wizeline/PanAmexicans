@@ -13,20 +13,23 @@ import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.PointOfInterest
 import com.wizeline.panamexicans.BuildConfig
-import com.wizeline.panamexicans.data.LocationPreferenceManager
+import com.wizeline.panamexicans.data.SharedDataPreferenceManager
 import com.wizeline.panamexicans.data.directions.DirectionsRepository
 import com.wizeline.panamexicans.data.models.UserStatus
 import com.wizeline.panamexicans.data.ridesessions.RideSessionRepository
 import com.wizeline.panamexicans.data.ridesessions.RideSessionStatus
+import com.wizeline.panamexicans.data.shareddata.SharedDataRepository
 import com.wizeline.panamexicans.data.userdata.UserDataRepository
 import com.wizeline.panamexicans.presentation.crashdetector.CrashDetector
-import com.wizeline.panamexicans.utils.calculateDistance
+import com.wizeline.panamexicans.utils.calculateDistanceInMeters
+import com.wizeline.panamexicans.utils.metersToMiles
 import com.wizeline.panamexicans.utils.toLatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -37,7 +40,8 @@ class MapViewModel @Inject constructor(
     private val rideSessionsRepository: RideSessionRepository,
     private val userDataRepository: UserDataRepository,
     private val directionsRepository: DirectionsRepository,
-    private val locationPreferenceManager: LocationPreferenceManager,
+    private val sharedDataRepository: SharedDataRepository,
+    private val preferenceManager: SharedDataPreferenceManager,
     private val crashDetector: CrashDetector
 ) : ViewModel() {
 
@@ -53,20 +57,24 @@ class MapViewModel @Inject constructor(
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
             locationResult.lastLocation?.speed?.let {
-                locationPreferenceManager.saveSpeed(it)
+                preferenceManager.saveSpeed(it)
             }
             val lastLocation = _uiState.value.currentLocation
-            val distance = calculateDistance(
+            val distance = calculateDistanceInMeters(
                 lastLocation?.latitude,
                 lastLocation?.longitude,
                 locationResult.lastLocation?.latitude,
                 locationResult.lastLocation?.longitude
             )
+            distance?.let {
+                sharedDataRepository.addMiles(metersToMiles(distance).toFloat())
+            }
             if (distance == null || distance < 10.0) return
             locationResult.lastLocation?.let { location ->
 
-                locationPreferenceManager.saveLocation(location.latitude, location.longitude)
+                preferenceManager.saveLocation(location.latitude, location.longitude)
                 _uiState.value.sessionJointId?.let {
+                    preferenceManager.joinSharedRide()
                     rideSessionsRepository.updateRideSessionStatus(
                         it,
                         UserStatus(
@@ -114,6 +122,7 @@ class MapViewModel @Inject constructor(
     init {
         startLocationUpdates()
         updatePreferenceLocationValues()
+        collectSharedDataInformation()
         viewModelScope.launch {
             val userData = userDataRepository.getUserData()
             userData?.let {
@@ -129,6 +138,14 @@ class MapViewModel @Inject constructor(
         }
     }
 
+    private fun collectSharedDataInformation() {
+        viewModelScope.launch {
+            sharedDataRepository.selectedRouteFlow.collectLatest { selectedRoute ->
+                onTakeMeThereClicked(selectedRoute)
+            }
+        }
+    }
+
     fun refreshSessionIfConnected() {
         val isAlreadyInSession = rideSessionsRepository.getConnectedSessionData()?.first
         if (isAlreadyInSession != null && isAlreadyInSession != _uiState.value.sessionJointId) {
@@ -137,7 +154,7 @@ class MapViewModel @Inject constructor(
     }
 
     private fun updatePreferenceLocationValues() {
-        val lastLocation = locationPreferenceManager.getLocation()
+        val lastLocation = preferenceManager.getLocation()
         lastLocation?.let {
             _uiState.update {
                 it.copy(
@@ -169,7 +186,7 @@ class MapViewModel @Inject constructor(
             }
 
             is MapUiEvents.OnTakeMeThereClicked -> {
-                onTakeMeThereClicked(event.latlong)
+                onTakeMeThereClicked(listOf(event.latlong))
             }
 
             is MapUiEvents.OnDangerClicked -> {
@@ -241,24 +258,61 @@ class MapViewModel @Inject constructor(
                 }
             }
             rideSessionsRepository.getRideSessionUsersFlow(rideSessionId).collect { users ->
+                val dangerUsers = getDangerUsers(_uiState.value.sessionUserStatus, users)
+                if (dangerUsers.isNotEmpty()) {
+                    onEvent(
+                        MapUiEvents.OnDangerClicked(
+                            LatLng(
+                                dangerUsers.first().lat,
+                                dangerUsers.first().lon
+                            ),
+                            dangerUsers.first().firstName,
+                        )
+                    )
+                }
                 Log.d("TAG", "subscribeToRideSessionUsers: updatingValues")
                 _uiState.update { it.copy(sessionUserStatus = users) }
             }
         }
     }
 
-    private fun onTakeMeThereClicked(latlong: LatLng) {
+    private fun getDangerUsers(
+        oldStatuses: List<UserStatus>,
+        newStatuses: List<UserStatus>
+    ): List<UserStatus> {
+        val oldStatusMap = oldStatuses.associateBy { it.id }
+
+        return newStatuses.filter { newUser ->
+            if (newUser.status == RideSessionStatus.DANGER.name) {
+                val oldUser = oldStatusMap[newUser.id]
+                oldUser == null || oldUser.status != RideSessionStatus.DANGER.name
+            } else {
+                false
+            }
+        }
+    }
+
+    private fun onTakeMeThereClicked(waypoints: List<LatLng>) {
         _uiState.update { it.copy(displayPoiDialog = false, displayDangerDialog = false) }
         val alreadyInRoute = _uiState.value.routePoints != null
         viewModelScope.launch {
             val routePoints = _uiState.value.currentLocation?.toLatLng()?.let {
-                directionsRepository.getRoute(
-                    start = it,
-                    end = latlong,
-                    apiKey = BuildConfig.MAPS_API_KEY
-                )
+                if (waypoints.size == 1) {
+                    directionsRepository.getRoute(
+                        start = it,
+                        end = waypoints.first(),
+                        apiKey = BuildConfig.MAPS_API_KEY
+                    )
+                } else {
+                    directionsRepository.getRouteWithWaypoints(
+                        start = it,
+                        end = waypoints.last(),
+                        waypoints = waypoints,
+                        apiKey = BuildConfig.MAPS_API_KEY
+                    )
+                }
             }
-            _uiState.update { it.copy(routePoints = routePoints) }
+            _uiState.update { it.copy(routePoints = routePoints, waypoints = waypoints) }
             if (alreadyInRoute.not()) { // and not in a session
                 _uiState.update { it.copy(displayStartRideSession = true) }
             }
@@ -304,11 +358,12 @@ data class MapUiState(
     val lastDangerName: String? = null,
     val lastPoiClicked: PointOfInterest? = null,
     val routePoints: List<LatLng>? = null,
+    val waypoints: List<LatLng>? = null,
     val displayStartRideSession: Boolean = false,
     val sessionUserStatus: List<UserStatus> = emptyList()
 ) {
-    val otherRiders: List<UserStatus>
-        get() = sessionUserStatus.filter { it.id != myId }
+    val riders: List<UserStatus>
+        get() = sessionUserStatus
 }
 
 sealed interface MapUiEvents {

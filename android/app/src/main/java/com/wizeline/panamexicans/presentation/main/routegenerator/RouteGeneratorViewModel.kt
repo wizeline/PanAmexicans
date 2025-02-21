@@ -2,13 +2,15 @@ package com.wizeline.panamexicans.presentation.main.routegenerator
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.maps.model.LatLng
 import com.wizeline.panamexicans.BuildConfig
-import com.wizeline.panamexicans.data.LocationPreferenceManager
+import com.wizeline.panamexicans.data.SharedDataPreferenceManager
 import com.wizeline.panamexicans.data.gemini.RouteGeneratorRepository
 import com.wizeline.panamexicans.data.models.Author
 import com.wizeline.panamexicans.data.models.BasicWaypoint
 import com.wizeline.panamexicans.data.models.ChatBotResponseWithRouteImage
 import com.wizeline.panamexicans.data.models.ChatMessage
+import com.wizeline.panamexicans.data.shareddata.SharedDataRepository
 import com.wizeline.panamexicans.data.userdata.UserDataRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,9 +24,9 @@ import javax.inject.Inject
 class RouteGeneratorViewModel @Inject constructor(
     private val userDataRepository: UserDataRepository,
     private val routeGeneratorRepository: RouteGeneratorRepository,
-    private val locationPreferenceManager: LocationPreferenceManager
-) :
-    ViewModel() {
+    private val locationPreferenceManager: SharedDataPreferenceManager,
+    private val sharedDataRepository: SharedDataRepository
+) : ViewModel() {
     private val _uiState = MutableStateFlow(RouteGeneratorUiState())
     val uiState: StateFlow<RouteGeneratorUiState> = _uiState.asStateFlow()
 
@@ -50,6 +52,12 @@ class RouteGeneratorViewModel @Inject constructor(
 
     fun onEvent(event: RouteGeneratorUiEvents) {
         when (event) {
+            is RouteGeneratorUiEvents.OnTakeMeThereClicked -> {
+                viewModelScope.launch {
+                    sharedDataRepository.setSelectedRoute(event.waypoints)
+                }
+            }
+
             is RouteGeneratorUiEvents.OnMessageSent -> {
                 sendMessage(
                     userMessage = event.userMessage,
@@ -149,5 +157,5 @@ data class RouteGeneratorUiState(
 sealed interface RouteGeneratorUiEvents {
     data class OnMessageSent(val userMessage: String) : RouteGeneratorUiEvents
     data class OnPreferenceClicked(val index: Int) : RouteGeneratorUiEvents
-    data object OnClick : RouteGeneratorUiEvents
+    data class OnTakeMeThereClicked(val waypoints: List<LatLng>) : RouteGeneratorUiEvents
 }

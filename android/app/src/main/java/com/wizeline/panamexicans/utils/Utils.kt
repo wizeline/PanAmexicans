@@ -67,7 +67,7 @@ fun callEmergency(context: Context) {
     }
 }
 
-fun calculateDistance(lat1: Double?, lon1: Double?, lat2: Double?, lon2: Double?): Double? {
+fun calculateDistanceInMeters(lat1: Double?, lon1: Double?, lat2: Double?, lon2: Double?): Double? {
     if (lat2 == null || lon2 == null) {
         return null
     }
@@ -80,4 +80,8 @@ fun calculateDistance(lat1: Double?, lon1: Double?, lat2: Double?, lon2: Double?
             sin(dLon / 2).pow(2.0)
     val c = 2 * atan2(sqrt(a), sqrt(1 - a))
     return earthRadius * c
+}
+
+fun metersToMiles(meters: Double): Double {
+    return meters * 0.000621371
 }

@@ -1,10 +1,11 @@
 package com.wizeline.panamexicans.navigation
 
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -27,7 +28,11 @@ fun MainNavHost(
             MapRoot(viewModel = hiltViewModel())
         }
         composable(MainNavRoute.RouteGenerator.toString()) {
-            RouteGeneratorRoot(viewModel = hiltViewModel())
+            RouteGeneratorRoot(
+                Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp), viewModel = hiltViewModel()
+            )
         }
         composable(MainNavRoute.Sessions.toString()) {
             MapSessionsRoot(viewModel = hiltViewModel())

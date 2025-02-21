@@ -50,6 +50,7 @@ import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.zIndex
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.google.android.gms.maps.model.LatLng
 import com.wizeline.panamexicans.R
 import com.wizeline.panamexicans.data.models.Author
 import com.wizeline.panamexicans.data.models.ChatBotResponseWithRouteImage
@@ -60,7 +61,12 @@ import com.wizeline.panamexicans.presentation.theme.Orange
 import kotlinx.coroutines.launch
 
 @Composable
-fun ChatItem(chat: ChatMessage, onMenuClicked: (String) -> Unit) {
+fun ChatItem(
+    chat: ChatMessage,
+    displayTakeMeThereButton: Boolean = true,
+    onMenuClicked: (String) -> Unit,
+    onTakeMeThereClicked: (List<LatLng>) -> Unit
+) {
     if (chat.isMenu()) {
         MenuItem(onMenuClicked, chat)
         return
@@ -111,7 +117,10 @@ fun ChatItem(chat: ChatMessage, onMenuClicked: (String) -> Unit) {
 
                     )
                     chat.response.route?.let {
-                        RouteItem(it, onTakeMeThereClicked = {})
+                        RouteItem(
+                            chat.response,
+                            displayTakeMeThereButton,
+                            onTakeMeThereClicked = { onTakeMeThereClicked(it) })
                     }
                 }
             }
@@ -120,10 +129,14 @@ fun ChatItem(chat: ChatMessage, onMenuClicked: (String) -> Unit) {
 }
 
 @Composable
-fun RouteItem(route: GeneratedRoutImage, onTakeMeThereClicked: () -> Unit) {
+fun RouteItem(
+    route: ChatBotResponseWithRouteImage,
+    displayTakeMeThereButton: Boolean,
+    onTakeMeThereClicked: (List<LatLng>) -> Unit
+) {
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         ZoomableImage(
-            route.routeImage.orEmpty(),
+            route.route?.routeImage.orEmpty(),
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(1f)
@@ -131,10 +144,14 @@ fun RouteItem(route: GeneratedRoutImage, onTakeMeThereClicked: () -> Unit) {
             onDismiss = {}
         )
         Spacer(modifier = Modifier.height(16.dp))
-        PrimaryColorButton(
-            Modifier.padding(horizontal = 16.dp),
-            text = "Take me there",
-            onClick = { onTakeMeThereClicked() })
+        if (displayTakeMeThereButton) {
+            PrimaryColorButton(
+                Modifier
+                    .fillMaxWidth(.8f)
+                    .padding(horizontal = 16.dp),
+                text = "Take me there",
+                onClick = { onTakeMeThereClicked(route.waypoints) })
+        }
     }
 
 }
@@ -270,7 +287,7 @@ fun ZoomableImage(
 @Preview
 @Composable
 private fun RouteItemPrev() {
-    RouteItem(GeneratedRoutImage("someUrl")) {}
+    RouteItem(ChatBotResponseWithRouteImage("someUrl", route = null, emptyList()), false) {}
 }
 
 @Preview
@@ -280,8 +297,8 @@ private fun PreferencesItemPrev() {
         ChatMessage(
             response = ChatBotResponseWithRouteImage(
                 message = "the best route",
-                GeneratedRoutImage("SomeUrl")
+                null, emptyList()
             ),
             author = Author.Bot
-        ), {})
+        ), true, {}, {})
 }

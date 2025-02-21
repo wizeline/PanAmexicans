@@ -16,7 +16,7 @@
     <string name="icon_updater">Icon Updater</string>
     <string name="widget">Widget</string>
     <string name="crash_detector">Crash Detector</string>
-    <string name="route_calculator">Route Calculator</string>
+    <string name="route_calculator">Route Generator</string>
     <string name="ridesessions">RideSessions</string>
     <string name="name">Name</string>
     <string name="invalid_name">Name field is required</string>
