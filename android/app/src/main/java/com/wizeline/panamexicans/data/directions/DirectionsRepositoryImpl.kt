@@ -7,6 +7,31 @@ import javax.inject.Inject
 class DirectionsRepositoryImpl @Inject constructor(private val directionsApi: DirectionsApi) :
     DirectionsRepository {
 
+    override suspend fun getRouteWithWaypoints(
+        start: LatLng,
+        end: LatLng,
+        waypoints: List<LatLng>,
+        apiKey: String
+    ): List<LatLng>? {
+        try {
+            val origin = "${start.latitude},${start.longitude}"
+            val destination = "${end.latitude},${end.longitude}"
+            val waypointsParam =
+                waypoints.joinToString(separator = "|") { "${it.latitude},${it.longitude}" }
+
+            val response = directionsApi.getDirectionsWithWaypoints(origin, destination, apiKey, waypointsParam)
+
+            if (response.routes.isNotEmpty()) {
+                val encodedPolyline = response.routes[0].overviewPolyline.points
+                return decodePolyline(encodedPolyline)
+            }
+        } catch (e: Exception) {
+            Log.e("Directions", "Error fetching directions with waypoints", e)
+            return null
+        }
+        return null
+    }
+
     override suspend fun getRoute(start: LatLng, end: LatLng, apiKey: String): List<LatLng>? {
         try {
             val origin = "${start.latitude},${start.longitude}"

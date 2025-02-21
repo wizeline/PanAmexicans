@@ -5,13 +5,15 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.wizeline.panamexicans.data.LocationPreferenceManager
+import com.wizeline.panamexicans.data.SharedDataPreferenceManager
 import com.wizeline.panamexicans.data.authentication.Authentication
 import com.wizeline.panamexicans.data.authentication.FirebaseAuthenticationImpl
 import com.wizeline.panamexicans.data.directions.DirectionsRepository
 import com.wizeline.panamexicans.data.directions.DirectionsRepositoryImpl
 import com.wizeline.panamexicans.data.ridesessions.RideSessionRepository
 import com.wizeline.panamexicans.data.ridesessions.RideSessionRepositoryImpl
+import com.wizeline.panamexicans.data.shareddata.SharedDataRepository
+import com.wizeline.panamexicans.data.shareddata.SharedDataRepositoryImpl
 import com.wizeline.panamexicans.data.userdata.UserDataRepository
 import com.wizeline.panamexicans.data.userdata.UserDataRepositoryImpl
 import com.wizeline.panamexicans.di.NetworkModule.provideDirectionsService
@@ -39,6 +41,11 @@ object AppModule {
     @Provides
     fun providesRideSessionRepository(): RideSessionRepository = RideSessionRepositoryImpl()
 
+    @Singleton
+    @Provides
+    fun providesSharedDataRepository(@ApplicationContext context: Context): SharedDataRepository =
+        SharedDataRepositoryImpl(providesLocationPreferenceManager(context))
+
     @Provides
     fun providesFirebaseAuthentication(): FirebaseAuth = FirebaseAuth.getInstance()
 
@@ -65,7 +72,7 @@ object AppModule {
     @Singleton
     @Provides
     fun providesLocationPreferenceManager(@ApplicationContext context: Context):
-            LocationPreferenceManager = LocationPreferenceManager(context)
+            SharedDataPreferenceManager = SharedDataPreferenceManager(context)
 
     @Singleton
     @Provides

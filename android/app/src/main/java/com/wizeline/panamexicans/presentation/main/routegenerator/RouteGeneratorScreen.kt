@@ -3,7 +3,6 @@ package com.wizeline.panamexicans.presentation.main.routegenerator
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,11 +31,17 @@ import com.wizeline.panamexicans.presentation.composables.PreferencesItem
 import com.wizeline.panamexicans.presentation.theme.Orange
 
 @Composable
-fun RouteGeneratorRoot(viewModel: RouteGeneratorViewModel) {
+fun RouteGeneratorRoot(
+    modifier: Modifier,
+    viewModel: RouteGeneratorViewModel,
+    displayTakeMeThereButton: Boolean = true
+) {
     val uiState by viewModel.uiState.collectAsState()
 
     RouteGeneratorScreen(
+        modifier = modifier,
         uiState = uiState,
+        displayTakeMeThereButton = displayTakeMeThereButton,
         onEvent = { event ->
             viewModel.onEvent(event)
             when (event) {
@@ -48,14 +53,14 @@ fun RouteGeneratorRoot(viewModel: RouteGeneratorViewModel) {
 
 @Composable
 fun RouteGeneratorScreen(
+    modifier: Modifier,
+    displayTakeMeThereButton: Boolean,
     onEvent: (RouteGeneratorUiEvents) -> Unit,
     uiState: RouteGeneratorUiState
 ) {
     var userInput by remember { mutableStateOf("") }
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
+        modifier = modifier
     ) {
         LazyColumn(
             modifier = Modifier.weight(1f),
@@ -65,7 +70,13 @@ fun RouteGeneratorScreen(
                 if (message.isPreferences()) {
                     PreferencesItem(onEvent, uiState.selectedStates)
                 } else {
-                    ChatItem(message, { })
+                    ChatItem(
+                        chat = message,
+                        displayTakeMeThereButton = displayTakeMeThereButton,
+                        onMenuClicked = {},
+                        onTakeMeThereClicked = {
+                            onEvent(RouteGeneratorUiEvents.OnTakeMeThereClicked(it))
+                        })
                 }
             }
         }
@@ -108,5 +119,10 @@ fun RouteGeneratorScreen(
 @Preview(showBackground = true)
 @Composable
 private fun RouteGeneratorScreenPreview() {
-    RouteGeneratorScreen(onEvent = {}, uiState = RouteGeneratorUiState())
+    RouteGeneratorScreen(
+        Modifier,
+        onEvent = {},
+        uiState = RouteGeneratorUiState(),
+        displayTakeMeThereButton = true
+    )
 }

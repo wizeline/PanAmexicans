@@ -3,9 +3,10 @@ package com.wizeline.panamexicans.presentation.ridesessions
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.wizeline.panamexicans.data.SharedDataPreferenceManager
 import com.wizeline.panamexicans.data.models.RideSession
-import com.wizeline.panamexicans.data.ridesessions.RideSessionRepository
 import com.wizeline.panamexicans.data.models.UserStatus
+import com.wizeline.panamexicans.data.ridesessions.RideSessionRepository
 import com.wizeline.panamexicans.data.ridesessions.RideSessionStatus
 import com.wizeline.panamexicans.data.userdata.UserDataRepository
 import com.wizeline.panamexicans.utils.getRandomCoordinateInSanFrancisco
@@ -22,7 +23,8 @@ import javax.inject.Inject
 @HiltViewModel
 class RideSessionsViewModel @Inject constructor(
     private val repository: RideSessionRepository,
-    private val userRepository: UserDataRepository
+    private val userRepository: UserDataRepository,
+    private val preferenceManager: SharedDataPreferenceManager
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(RideSessionsUiState())
     val uiState: StateFlow<RideSessionsUiState> = _uiState.asStateFlow()
@@ -106,6 +108,7 @@ class RideSessionsViewModel @Inject constructor(
                 repository.updateRideSessionStatus(sessionId,
                     userStatus,
                     onSuccess = {
+                        preferenceManager.joinSharedRide()
                         _uiState.update {
                             it.copy(
                                 rideSessionContainerState = RideSessionContainerState.ON_SESSION,
@@ -176,7 +179,7 @@ data class RideSessionsUiState(
     val sessionUserStatus: List<UserStatus> = emptyList(),
     val rideSessionContainerState: RideSessionContainerState = RideSessionContainerState.NONE
 ) {
-    val generateSessionEnabled : Boolean
+    val generateSessionEnabled: Boolean
         get() = rideSessionContainerState != RideSessionContainerState.ON_SESSION
 }
 

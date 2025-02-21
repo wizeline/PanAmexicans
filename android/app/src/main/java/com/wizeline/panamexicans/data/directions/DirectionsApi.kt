@@ -10,4 +10,12 @@ interface DirectionsApi {
         @Query("destination") destination: String,
         @Query("key") key: String
     ): DirectionsResponse
+
+    @GET("directions/json")
+    suspend fun getDirectionsWithWaypoints(
+        @Query("origin") origin: String,
+        @Query("destination") destination: String,
+        @Query("key") key: String,
+        @Query("waypoints") waypoints: String
+    ): DirectionsResponse
 }

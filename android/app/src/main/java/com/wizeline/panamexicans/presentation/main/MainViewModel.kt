@@ -50,7 +50,7 @@ data class MainUiState(
     val bottomNavScreens: List<Pair<String, Int>> = listOf(
         MainTabs.Sessions.name to R.drawable.ic_group,
         MainTabs.Map.name to R.drawable.ic_map,
-        MainTabs.RouteGenerator.name to R.drawable.ic_premium
+        MainTabs.RouteGenerator.name to R.drawable.ic_route
     )
 )
 

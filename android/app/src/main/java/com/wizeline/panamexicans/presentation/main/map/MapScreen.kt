@@ -3,6 +3,7 @@ package com.wizeline.panamexicans.presentation.main.map
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +35,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
@@ -90,6 +92,9 @@ fun MapScreen(
     val bikerIcon = remember {
         getBitmapDescriptorFromVector(context, R.drawable.ic_biker, width = 100, height = 100)
     }
+    val bikerMeIcon = remember {
+        getBitmapDescriptorFromVector(context, R.drawable.ic_biker_me, width = 100, height = 100)
+    }
     val lunchIcon = remember {
         getBitmapDescriptorFromVector(context, R.drawable.ic_lunch, width = 100, height = 100)
     }
@@ -104,6 +109,11 @@ fun MapScreen(
             height = 100
         )
     }
+    val isDarkTheme = isSystemInDarkTheme()
+    val mapStyleOptions = MapStyleOptions.loadRawResourceStyle(
+        context,
+        if (isDarkTheme) R.raw.map_style_dark else R.raw.map_style_light
+    )
     LaunchedEffect(uiState.cachedLocation) {
         uiState.cachedLocation?.let {
             cameraPositionState.move(
@@ -124,7 +134,10 @@ fun MapScreen(
             onPOIClick = { poi ->
                 onEvent(MapUiEvents.OnPoiClicked(poi))
             },
-            properties = MapProperties().copy(isMyLocationEnabled = true),
+            properties = MapProperties().copy(
+                isMyLocationEnabled = uiState.sessionJointId == null,
+                mapStyleOptions = mapStyleOptions
+            ),
         ) {
             uiState.routePoints?.let {
                 Polyline(
@@ -133,7 +146,15 @@ fun MapScreen(
                     width = 8f
                 )
             }
-            uiState.otherRiders.forEach { user ->
+            uiState.waypoints?.let { waypoints ->
+                waypoints.forEach {
+                    Marker(
+                        state = MarkerState(position = it),
+                        title = "Waypoint",
+                    )
+                }
+            }
+            uiState.riders.forEach { user ->
                 AnimatedMarker(
                     targetPosition = LatLng(user.lat, user.lon),
                     title = "${user.firstName} ${user.lastName}",
@@ -147,7 +168,7 @@ fun MapScreen(
                         )
                     },
                     icon = when (user.status) {
-                        RideSessionStatus.RIDING.name -> bikerIcon
+                        RideSessionStatus.RIDING.name -> if (user.id == uiState.myId) bikerMeIcon else bikerIcon
                         RideSessionStatus.DANGER.name -> dangerIcon
                         RideSessionStatus.LUNCH.name -> lunchIcon
                         RideSessionStatus.BATHROOM.name -> bathroomIcon

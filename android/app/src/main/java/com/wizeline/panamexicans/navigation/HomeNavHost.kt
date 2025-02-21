@@ -1,5 +1,6 @@
 package com.wizeline.panamexicans.navigation
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -13,10 +14,9 @@ import com.wizeline.panamexicans.presentation.home.HomeContentRoot
 import com.wizeline.panamexicans.presentation.home.HomeContentViewModel
 import com.wizeline.panamexicans.presentation.iconupdater.IconUpdaterRoot
 import com.wizeline.panamexicans.presentation.iconupdater.IconUpdaterViewModel
+import com.wizeline.panamexicans.presentation.main.routegenerator.RouteGeneratorRoot
 import com.wizeline.panamexicans.presentation.ridesessions.RideSessionsRoot
 import com.wizeline.panamexicans.presentation.ridesessions.RideSessionsViewModel
-import com.wizeline.panamexicans.presentation.routecalculator.RouteCalculatorRoot
-import com.wizeline.panamexicans.presentation.routecalculator.RouteCalculatorViewModel
 import com.wizeline.panamexicans.presentation.voicerecognition.VoiceRecognitionRoot
 import com.wizeline.panamexicans.presentation.voicerecognition.VoiceRecognitionViewModel
 import com.wizeline.panamexicans.presentation.widget.WidgetRoot
@@ -55,8 +55,11 @@ fun HomeNavHost(
             CrashDetectorRoot(navController, viewModel)
         }
         composable(HomeNavRoute.RouteCalculator.name) {
-            val viewModel: RouteCalculatorViewModel = hiltViewModel()
-            RouteCalculatorRoot(navController, viewModel)
+            RouteGeneratorRoot(
+                modifier = Modifier.fillMaxSize(),
+                displayTakeMeThereButton = false,
+                viewModel = hiltViewModel()
+            )
         }
         composable(HomeNavRoute.RideSessions.name) {
             val viewModel: RideSessionsViewModel = hiltViewModel()
