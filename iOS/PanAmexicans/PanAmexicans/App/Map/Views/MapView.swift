@@ -40,8 +40,21 @@ struct MapView: View {
                 .mapControlVisibility(.visible)
         }
         .controlSize(.large)
+        .overlay(alignment: .topLeading) {
+            if let session = rideSessionViewModel.currentSession {
+                Text(session.rideSessionName)
+                    .font(.footnote)
+                    .bold()
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 5)
+                    .background(Color.accentColor)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .padding()
+            }
+        }
     }
 
+    // MARK: - Helpers
     private func getBikeIcon(color: Color) -> some View {
         Image("bike")
             .renderingMode(.template)
