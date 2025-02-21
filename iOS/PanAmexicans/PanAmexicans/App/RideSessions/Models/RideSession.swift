@@ -8,7 +8,7 @@
 import Foundation
 import class FirebaseCore.Timestamp
 
-struct RideSession: Codable {
+struct RideSession: Codable, Identifiable {
     var id: String?
     var creator: String
     var rideSessionName: String

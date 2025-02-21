@@ -14,14 +14,14 @@ struct MapView: View {
 
     var body: some View {
         Map(initialPosition: .userLocation(fallback: .automatic)) {
-            UserAnnotation()
+            UserAnnotation { _ in
+                getBikeIcon(color: .accentColor)
+            }
 
             ForEach(rideSessionViewModel.rideSessionUsers, id: \.id) { user in
                 if user.id != rideSessionViewModel.userId {
                     Annotation(user.firstName, coordinate: .init(latitude: user.lat, longitude: user.lon)) {
-                        Circle()
-                            .foregroundStyle(Color.purple)
-                            .frame(width: 20, height: 20)
+                        getBikeIcon(color: .black)
                     }
                 }
             }
@@ -35,5 +35,13 @@ struct MapView: View {
                 .mapControlVisibility(.visible)
         }
         .controlSize(.large)
+    }
+
+    private func getBikeIcon(color: Color) -> some View {
+        Image("bike")
+            .renderingMode(.template)
+            .resizable()
+            .frame(width: 25, height: 25)
+            .foregroundStyle(color)
     }
 }

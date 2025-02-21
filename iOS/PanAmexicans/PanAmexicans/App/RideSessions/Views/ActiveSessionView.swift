@@ -8,9 +8,9 @@
 import SwiftUI
 
 struct ActiveSessionView: View {
-    @EnvironmentObject var rideSessionManager: RideSessionViewModel
+    @EnvironmentObject var rideSessionViewModel: RideSessionViewModel
     @EnvironmentObject var locationManager: LocationManager
-    @State private var isLoading: Bool = true
+    @State private var isLoading: Bool = false
 
     // MARK: - Error alert
     @State private var errorMessage: String = ""
@@ -29,7 +29,7 @@ struct ActiveSessionView: View {
                 Text("Leave")
             }
 
-            ForEach(rideSessionManager.rideSessionUsers, id: \.id) { user in
+            ForEach(rideSessionViewModel.rideSessionUsers, id: \.id) { user in
                 VStack {
                     Text("User: \(user.firstName)")
                     Text("Latitude: \(user.lat)")
@@ -43,6 +43,7 @@ struct ActiveSessionView: View {
                 .frame(maxWidth: .infinity)
             }
         }
+        .redacted(reason: isLoading ? .placeholder : [])
         .onReceive(locationManager.$lastKnownLocation) { _ in
             updateSession()
         }
@@ -58,7 +59,7 @@ struct ActiveSessionView: View {
         Task {
             guard let location = locationManager.lastKnownLocation else { return }
 
-            await rideSessionManager.update(
+            await rideSessionViewModel.update(
                 latitude: location.latitude,
                 longitude: location.longitude
             )
@@ -69,7 +70,7 @@ struct ActiveSessionView: View {
         Task { @MainActor in
             do {
                 isLoading = true
-                try await rideSessionManager.leaveRideSession()
+                try await rideSessionViewModel.leaveRideSession()
                 isLoading = false
             } catch {
                 isLoading = false

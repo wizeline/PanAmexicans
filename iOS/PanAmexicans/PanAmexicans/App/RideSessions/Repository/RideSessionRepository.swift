@@ -96,6 +96,15 @@ final class RideSessionRepository: ObservableObject {
         }
     }
 
+    func getRideSessionUsers(id: String) async throws -> [UserStatus] {
+        let snapshot = try await rideSessionCollection
+            .document(id)
+            .collection(Collection.USERS.rawValue)
+            .getDocuments()
+
+        return snapshot.documents.compactMap { try? $0.data(as: UserStatus.self) }
+    }
+
     func leaveRideSession(_ rideSessionId: String) async throws {
         clearListener()
 

@@ -12,6 +12,10 @@ final class SessionViewModel: ObservableObject {
     // MARK: - Properties
     @Published var userData: UserData?
 
+    var userName: String? {
+        userData?.firstName
+    }
+
     private let authenticationRepository: AuthenticationRepository
 
     // MARK: - Initializers

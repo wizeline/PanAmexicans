@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "bathroom.svg",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

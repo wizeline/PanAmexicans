@@ -7,10 +7,15 @@
 
 import SwiftUI
 
-struct HomeView: View {
+struct TabsView: View {
+    @EnvironmentObject private var sessionViewModel: SessionViewModel
     @StateObject private var rideSessionViewModel: RideSessionViewModel
     @StateObject private var locationManager = LocationManager()
     @State private var isLoading: Bool = true
+
+    private var welcomeMessage: String {
+        "Welcome, \(sessionViewModel.userName ?? "")!"
+    }
 
     init(userData: UserData) {
         _rideSessionViewModel = StateObject(
@@ -24,9 +29,21 @@ struct HomeView: View {
     var body: some View {
         TabView {
             Tab("Sessions", systemImage: "person") {
-                RideSessionsView()
-                    .environmentObject(rideSessionViewModel)
-                    .environmentObject(locationManager)
+                NavigationStack {
+                    RideSessionsView()
+                        .environmentObject(rideSessionViewModel)
+                        .environmentObject(locationManager)
+                        .navigationTitle(welcomeMessage)
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                Button {
+                                    sessionViewModel.signOut()
+                                } label: {
+                                    Text("Log Out")
+                                }
+                            }
+                        }
+                }
             }
 
             Tab("Map", systemImage: "map") {

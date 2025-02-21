@@ -101,4 +101,11 @@ final class RideSessionViewModel: ObservableObject {
     func getRideSessions() async throws {
         rideSessions = try await rideSessionRepository.getRideSessions()
     }
+
+    @MainActor
+    func getRideSessionUsers(_ sessionId: String?) async throws -> [UserStatus] {
+        guard let sessionId else { return [] }
+
+        return try await rideSessionRepository.getRideSessionUsers(id: sessionId)
+    }
 }

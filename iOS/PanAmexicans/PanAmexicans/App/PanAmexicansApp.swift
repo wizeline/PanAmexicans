@@ -32,18 +32,8 @@ struct PanAmexicansApp: App {
                         .progressViewStyle(.circular)
                 } else {
                     if let userData = sessionViewModel.userData {
-                        NavigationStack {
-                            HomeView(userData: userData)
-                                .toolbar {
-                                    ToolbarItem(placement: .topBarTrailing) {
-                                        Button {
-                                            sessionViewModel.signOut()
-                                        } label: {
-                                            Text("Log Out")
-                                        }
-                                    }
-                                }
-                        }
+                        TabsView(userData: userData)
+                            .environmentObject(sessionViewModel)
                     } else {
                         LoginView()
                             .environmentObject(sessionViewModel)
