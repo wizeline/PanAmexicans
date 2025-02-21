@@ -25,10 +25,13 @@ import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row
+import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import androidx.glance.layout.size
+import androidx.glance.layout.width
 import androidx.glance.state.GlanceStateDefinition
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.Text
@@ -174,13 +177,21 @@ class PanAmexAppWidget : GlanceAppWidget() {
                     ),
                 )
             }
-            Text(
-                text = "3 weeks streak",
-                style = TextStyle(
-                    color = ColorProvider(color = Color.White),
-                    fontSize = 12.sp
-                ),
-            )
+            Row {
+                Text(
+                    text = "3 weeks streak",
+                    style = TextStyle(
+                        color = ColorProvider(color = Color.White),
+                        fontSize = 12.sp
+                    ),
+                )
+                Spacer(GlanceModifier.width(8.dp))
+                Image(
+                    modifier = GlanceModifier.size(16.dp),
+                    provider = ImageProvider(R.drawable.ic_streak),
+                    contentDescription = null
+                )
+            }
         }
     }
 
