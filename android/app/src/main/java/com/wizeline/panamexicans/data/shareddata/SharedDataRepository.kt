@@ -7,5 +7,6 @@ interface SharedDataRepository {
     suspend fun setSelectedRoute(routePoints: List<LatLng>?)
     fun addMiles(miles: Float)
     fun getMilesCounter(): Float
+    fun clearMiles()
     val selectedRouteFlow: StateFlow<List<LatLng>>
 }

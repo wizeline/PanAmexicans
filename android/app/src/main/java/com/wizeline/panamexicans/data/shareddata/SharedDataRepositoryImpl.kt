@@ -31,4 +31,7 @@ class SharedDataRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun clearMiles() {
+        preferenceManager.storeMiles(0.0f)
+    }
 }

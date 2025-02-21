@@ -2,6 +2,7 @@ package com.wizeline.panamexicans.presentation.crashdetector
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -14,11 +15,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.wizeline.panamexicans.presentation.theme.Orange
+import com.wizeline.panamexicans.presentation.theme.PanAmexicansTheme
 
 @Composable
 fun CrashDetectorRoot(navController: NavController, viewModel: CrashDetectorViewModel) {
@@ -40,11 +43,21 @@ fun CrashDetectorScreen(
     onEvent: (CrashDetectorUiEvents) -> Unit,
     uiState: CrashDetectorUiState
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
 
-        Text(text = "Crash timestamps: " + uiState.fallTimeStamps)
+        Spacer(modifier = Modifier.height(10.dp))
         if (uiState.isCrashDetected) {
             EmergencyCard(uiState = uiState)
+        } else {
+            Text(
+                text = "Drop your phone to test this feature!",
+                fontSize = 20.sp,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
@@ -65,9 +78,12 @@ private fun EmergencyCard(uiState: CrashDetectorUiState) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(text = "Call 911!", fontSize = 25.sp)
+            Text(text = "Crash detected!!", fontSize = 20.sp)
         }
     }
+    Text(text = "Take emergency measures", fontSize = 18.sp)
+    Spacer(modifier = Modifier.height(20.dp))
+    Text(text = "Reset detector in ${uiState.timer} seconds.", fontSize = 18.sp)
 }
 
 @Preview(showBackground = true)

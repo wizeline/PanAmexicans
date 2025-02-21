@@ -12,6 +12,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
+const val RESET_TIMER = 10
+
 @HiltViewModel
 class CrashDetectorViewModel @Inject constructor(
     private val crashDetector: CrashDetector
@@ -25,19 +28,26 @@ class CrashDetectorViewModel @Inject constructor(
     }
 
     fun onEvent(event: CrashDetectorUiEvents) {
-        when(event) {
+        when (event) {
             is CrashDetectorUiEvents.OnCrashDetected -> {
                 //Todo: Emergency event ex: Inform riders, call 911, etc
             }
+
             else -> Unit
         }
     }
 
     private fun hideEmergencyTrigger() {
         viewModelScope.launch {
-            delay(5000L)
+            for (i in RESET_TIMER downTo 1) {
+                delay(1000L)
+                _uiState.update { it.copy(timer = i) }
+            }
             _uiState.update {
-                it.copy(isCrashDetected = false)
+                it.copy(
+                    isCrashDetected = false,
+                    timer = RESET_TIMER
+                )
             }
         }
     }
@@ -70,7 +80,8 @@ class CrashDetectorViewModel @Inject constructor(
 data class CrashDetectorUiState(
     val isLoading: Boolean = false,
     val isCrashDetected: Boolean = false,
-    val fallTimeStamps: String = ""
+    val fallTimeStamps: String = "",
+    val timer: Int = RESET_TIMER
 )
 
 sealed interface CrashDetectorUiEvents {
