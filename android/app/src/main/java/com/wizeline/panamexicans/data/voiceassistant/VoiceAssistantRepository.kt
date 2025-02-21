@@ -28,14 +28,18 @@ class VoiceAssistantRepository @Inject constructor(
                             "- ChangeStatusToDanger: Switch the vehicle status to danger mode.\n" +
                             "- ChangeStatusToLunch: Switch the vehicle status to lunch mode.\n" +
                             "- ChangeStatusToBathroom: Switch the vehicle status to bathroom mode.\n" +
-                            "- ChangeStatusToRiding: Switch the vehicle status to riding mode, for example when rider is not in danger.\n" +
-                            "- TakeMeToNextDealer: Navigate to the next Harley Davidson dealer location, using provided coordinates.\n" +
-                            "- TakeMeToNextGasStation: Navigate to the next gas station, using provided coordinates.\n" +
+                            "- ChangeStatusToRiding: Switch the vehicle status to riding mode, for example when the rider is not in danger.\n" +
+                            "- TakeMeToNextDealer: Navigate to the next Harley Davidson dealer location, using the provided current location only to find the closest dealer. Return dealer coordinates.\n" +
+                            "- TakeMeToNextGasStation: Navigate to the next gas station, using the provided current location only to find the closest gas station. Return gas station coordinates.\n" +
                             "- CancelNavigation: Cancel the current navigation task.\n" +
-                            "- SetDestination: Set a specific destination using the provided latitude and longitude.\n" +
+                            "- SetDestination: Set a specific destination using the provided latitude and longitude. Return the destination coordinates.\n" +
                             "- UnknownCommand: When a command does not match any known patterns.\n" +
                             "\n" +
                             "When you receive a user instruction, analyze its content and try to map it to one of these actions. If the instruction does not match any known command, return the UnknownCommand action.\n" +
+                            "\n" +
+                            "Important: You will also receive the user's current location in a separate message formatted as: \n" +
+                            "\"use my current location only to look for closer places {lat: <lat>, lon: <lon>}\"\n" +
+                            "Use the current location ONLY to find nearby services (e.g., the next dealer or gas station) if applicable. However, if the user specifies an explicit destination in the command (for example, \"Take me to San Francisco Golden Gate\"), use the destination coordinates provided by the instruction and ignore the current location for that purpose.\n" +
                             "\n" +
                             "Return your response as a JSON object using the following structure:\n" +
                             "\n" +
@@ -46,14 +50,6 @@ class VoiceAssistantRepository @Inject constructor(
                             "  \"long\": 0.0\n" +
                             "}\n" +
                             "\n" +
-                            "For example, if the user says \"Take me to San Francisco Golden Gate\", you might return:\n" +
-                            "\n" +
-                            "{\n" +
-                            "  \"action\": \"SetDestination\",\n" +
-                            "  \"lat\": 37.8199,\n" +
-                            "  \"long\": -122.4783\n" +
-                            "}\n" +
-                            "\n" +
                             "Your goal is to make navigation decisions clear, concise, and safe, responding with the appropriate action.\n"
                 )
             ),
@@ -61,7 +57,7 @@ class VoiceAssistantRepository @Inject constructor(
         )
         val userPrompt = Content(
             parts = listOf(
-                Part(voiceCommand + if (latLon != null) " consider my current location to receive more precise information {lat:${latLon.latitude}, lon:${latLon.longitude}}" else "")
+                Part(voiceCommand + if (latLon != null) " use my current location only to look for closer places closer places {lat:${latLon.latitude}, lon:${latLon.longitude}}" else "")
             ),
             role = "user"
         )
@@ -70,22 +66,6 @@ class VoiceAssistantRepository @Inject constructor(
         return try {
             val response = service.generateContent(apiKey, request)
             return parseGeminiResponse(response)
-            //val jsonString = response.candidates.joinToString("\n") { candidate ->
-            //    candidate.content?.parts?.joinToString(" ") { part ->
-            //        part.text?.trim().orEmpty()
-            //    } ?: ""
-            //}
-            //val candidate = response.candidates.firstOrNull() ?: return null
-            //val part = candidate.content?.parts?.firstOrNull() ?: return null
-            //val rawText = part.text
-            //// Extraemos el contenido JSON entre las marcas triple backticks.
-            //val jsonRegex = "```json(.*?)```".toRegex(RegexOption.DOT_MATCHES_ALL)
-            //val matchResult = jsonRegex.find(rawText)
-            //val jsonString = matchResult?.groups?.get(1)?.value?.trim() ?: rawText.trim()
-//
-            //// Usa Gson para parsear el JSON al modelo NavigationCommand
-            //val gson = Gson()
-            //return gson.fromJson(jsonString, NavigationCommand::class.java)
         } catch (e: Exception) {
             "Error: ${e.message}"
             throw e
@@ -99,13 +79,6 @@ fun parseGeminiResponse(response: GeminiResponse): NavigationCommand? {
     val part = candidate.content?.parts?.firstOrNull() ?: return null
     val rawText = part.text
 
-    // El texto recibido tiene el formato:
-    // ```json
-    // {
-    //   "action": "UnknownCommand"
-    // }
-    // ```
-    // Extraemos el contenido JSON entre las marcas triple backticks.
     val jsonRegex = "```json(.*?)```".toRegex(RegexOption.DOT_MATCHES_ALL)
     val matchResult = jsonRegex.find(rawText.toString())
     val jsonString = matchResult?.groups?.get(1)?.value?.trim() ?: rawText?.trim()

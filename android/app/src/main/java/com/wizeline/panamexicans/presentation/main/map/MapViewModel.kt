@@ -275,6 +275,7 @@ class MapViewModel @Inject constructor(
     }
 
     private fun processCommand(command: NavigationCommand?) {
+        Log.d("VoiceService", "processCommand: $command")
         if (command == null) return
         when (command.action) {
             NavigationAction.ChangeStatusToDanger -> {
@@ -324,7 +325,7 @@ class MapViewModel @Inject constructor(
             }
 
             NavigationAction.UnknownCommand -> {
-                Log.d("TAG", "processCommand: Could not process your command")
+                Log.d("VoiceService", "processCommand: Could not process your command")
             }
         }
     }
