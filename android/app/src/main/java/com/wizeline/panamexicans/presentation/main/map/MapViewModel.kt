@@ -21,6 +21,8 @@ import com.wizeline.panamexicans.data.ridesessions.RideSessionStatus
 import com.wizeline.panamexicans.data.shareddata.SharedDataRepository
 import com.wizeline.panamexicans.data.userdata.UserDataRepository
 import com.wizeline.panamexicans.presentation.crashdetector.CrashDetector
+import com.wizeline.panamexicans.presentation.widget.PanAmexWidgetUiState
+import com.wizeline.panamexicans.presentation.widget.PanAmexWidgetUpdater
 import com.wizeline.panamexicans.utils.calculateDistanceInMeters
 import com.wizeline.panamexicans.utils.metersToMiles
 import com.wizeline.panamexicans.utils.toLatLng
@@ -42,7 +44,8 @@ class MapViewModel @Inject constructor(
     private val directionsRepository: DirectionsRepository,
     private val sharedDataRepository: SharedDataRepository,
     private val preferenceManager: SharedDataPreferenceManager,
-    private val crashDetector: CrashDetector
+    private val crashDetector: CrashDetector,
+    private val widget: PanAmexWidgetUpdater,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MapUiState())
@@ -68,6 +71,7 @@ class MapViewModel @Inject constructor(
             )
             distance?.let {
                 sharedDataRepository.addMiles(metersToMiles(distance).toFloat())
+                updateWidget()
             }
             if (distance == null || distance < 10.0) return
             locationResult.lastLocation?.let { location ->
@@ -88,6 +92,14 @@ class MapViewModel @Inject constructor(
                 }
                 _uiState.update { it.copy(currentLocation = locationResult.lastLocation) }
             }
+        }
+    }
+
+    private fun updateWidget() {
+        val miles = sharedDataRepository.getMilesCounter()
+        Log.d("WidgetDistance", "updateWidget: miles $miles")
+        viewModelScope.launch {
+            widget.update(uiState = PanAmexWidgetUiState(miles = miles.toInt()))
         }
     }
 

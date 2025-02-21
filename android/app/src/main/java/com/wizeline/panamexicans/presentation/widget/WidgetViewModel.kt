@@ -2,6 +2,7 @@ package com.wizeline.panamexicans.presentation.widget
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.wizeline.panamexicans.data.shareddata.SharedDataRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,27 +13,28 @@ import javax.inject.Inject
 @HiltViewModel
 class WidgetViewModel @Inject constructor(
     private val widget: PanAmexWidgetUpdater,
-    private val widgetRepository: WidgetMockRepository
+    private val sharedDataRepository: SharedDataRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(WidgetUiState())
     val uiState: StateFlow<WidgetUiState> = _uiState.asStateFlow()
 
 
-    init {
-        collectWidgetMiles()
-    }
-
-    private fun collectWidgetMiles() {
-        viewModelScope.launch {
-            widgetRepository.widgetState.collect { widgetState ->
-                widget.update(uiState = widgetState)
+    fun onEvent(event: WidgetUiEvents) {
+        when (event) {
+            is WidgetUiEvents.OnClickResetMiles -> {
+                clearWidget()
             }
         }
     }
 
-    fun updateWidget() {
+    private fun clearWidget() {
         viewModelScope.launch {
-            widgetRepository.getMiles()
+            sharedDataRepository.clearMiles()
+            widget.update(
+                uiState = PanAmexWidgetUiState(
+                    miles = sharedDataRepository.getMilesCounter().toInt()
+                )
+            )
         }
     }
 
@@ -43,5 +45,5 @@ data class WidgetUiState(
 )
 
 sealed interface WidgetUiEvents {
-    data object OnClick : WidgetUiEvents
+    data object OnClickResetMiles : WidgetUiEvents
 }
