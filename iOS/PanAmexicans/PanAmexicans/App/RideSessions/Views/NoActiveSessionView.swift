@@ -32,21 +32,12 @@ struct NoActiveSessionView: View {
             }
 
             if rideSessionViewModel.rideSessions.isEmpty {
-                VStack {
-                    Text("There are no active session available, try to refresh.")
-                        .multilineTextAlignment(.center)
-                        .font(.headline)
-                        .padding(20)
-                        .background(Color.gray.opacity(0.2))
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-
-                    Button {
-                        onAddSessionTapped()
-                    } label: {
-                        Text("Create a session")
-                            .font(.headline)
-                    }
-                }
+                Text("There are no active session available, try to refresh.")
+                    .multilineTextAlignment(.center)
+                    .font(.headline)
+                    .padding(20)
+                    .background(Color.gray.opacity(0.2))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
             } else {
                 VStack(alignment: .leading, spacing: 10) {
                     ForEach(rideSessionViewModel.rideSessions, id: \.id) { session in
@@ -74,6 +65,13 @@ struct NoActiveSessionView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            Button {
+                onAddSessionTapped()
+            } label: {
+                Text("Create a ride session")
+                    .font(.headline)
             }
 
             Spacer()
