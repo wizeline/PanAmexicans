@@ -66,7 +66,7 @@ struct LoginView: View {
                 } label: {
                     Text("Create account")
                         .font(.subheadline)
-                        .foregroundStyle(.purple)
+                        .foregroundStyle(Color.accent)
                 }
             }
             .padding()

@@ -39,7 +39,7 @@ extension View {
         .frame(height: 48)
         .frame(maxWidth: .infinity)
         .background(
-            LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing)
+            LinearGradient(colors: [.accent.opacity(0.8), .accent], startPoint: .topLeading, endPoint: .bottomTrailing)
         )
         .cornerRadius(16)
         .padding(.horizontal)
