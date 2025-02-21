@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.LocalActivity
@@ -133,10 +134,19 @@ fun VoiceRecognitionScreen(viewModel: VoiceRecognitionViewModel) {
             ContextCompat.RECEIVER_NOT_EXPORTED
         )
 
-        // Configuramos el IntentFilter con la acción deseada
-        context.registerReceiver(serviceStateReceiver, intentFilter)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.registerReceiver(
+                serviceStateReceiver,
+                intentFilter,
+                Context.RECEIVER_EXPORTED
+            )
+        } else {
+            context.registerReceiver(
+                serviceStateReceiver,
+                intentFilter
+            )
+        }
 
-        // En onDispose desregistramos el receptor para evitar fugas de memoria
         onDispose {
             context.unregisterReceiver(serviceStateReceiver)
         }

@@ -94,7 +94,7 @@ fun MapRoot(modifier: Modifier = Modifier, viewModel: MapViewModel) {
                 }
 
                 is MapUiEvents.OnToggleVoiceAssistant -> {
-                    if (uiState.voiceAssistantEnabled) {
+                    if (!uiState.voiceAssistantEnabled) {
                         startVoiceService(context)
                     } else {
                         stopVoiceService(context)
@@ -113,6 +113,7 @@ fun MapScreen(
 ) {
     var ttsService: TextToSpeechService? = null
     val context = LocalContext.current
+    val context3 = LocalContext.current
     val activity = LocalActivity.current
     ttsService = TextToSpeechService(activity!!)
     DisposableEffect(context) {
@@ -134,8 +135,7 @@ fun MapScreen(
 
                     ACTIVE_LISTENING_ON -> {
                         if (context == null) return
-                        //viewModel.updateActiveListening(true)
-                        val speechManager = SpeechToTextManager(context)
+                        val speechManager = SpeechToTextManager(context3)
                         speechManager.startListening(
                             onResult = { recognizedText ->
                                 Log.d("VoiceService", "Texto reconocido: $recognizedText")
@@ -167,18 +167,12 @@ fun MapScreen(
             addAction(TTS_RESPONSE)
             addAction(ACTIVE_LISTENING_ON)
         }
-        ContextCompat.registerReceiver(
-            context,
-            serviceStateReceiver,
-            intentFilter,
-            ContextCompat.RECEIVER_NOT_EXPORTED
-        )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.registerReceiver(
                 serviceStateReceiver,
                 intentFilter,
-                Context.RECEIVER_NOT_EXPORTED
+                Context.RECEIVER_EXPORTED
             )
         } else {
             context.registerReceiver(
