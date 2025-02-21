@@ -68,7 +68,11 @@ fun RouteGeneratorScreen(
         ) {
             items(uiState.messages) { message ->
                 if (message.isPreferences()) {
-                    PreferencesItem(onEvent, uiState.selectedStates)
+                    PreferencesItem(
+                        onEvent,
+                        uiState.selectedStates,
+                        hoursAvailable = uiState.availableHours,
+                        onHoursChanged = { onEvent(RouteGeneratorUiEvents.OnAvailableHoursChanged(it)) })
                 } else {
                     ChatItem(
                         chat = message,

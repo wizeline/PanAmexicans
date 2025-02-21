@@ -29,6 +29,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -97,6 +98,7 @@ class MapViewModel @Inject constructor(
                 if (crashState.isCrashRisk.not()) return@collect
                 _uiState.value.apply {
                     if (sessionJointId == null || currentLocation?.latitude == null || currentLocation?.longitude == null) return@collect
+                    _uiState.update { it.copy(status = RideSessionStatus.DANGER.name) }
                     rideSessionsRepository.updateRideSessionStatus(
                         sessionJointId,
                         UserStatus(
@@ -141,7 +143,9 @@ class MapViewModel @Inject constructor(
     private fun collectSharedDataInformation() {
         viewModelScope.launch {
             sharedDataRepository.selectedRouteFlow.collectLatest { selectedRoute ->
-                onTakeMeThereClicked(selectedRoute)
+                if (selectedRoute.isNotEmpty()) {
+                    onTakeMeThereClicked(selectedRoute)
+                }
             }
         }
     }
@@ -257,7 +261,9 @@ class MapViewModel @Inject constructor(
                     )
                 }
             }
-            rideSessionsRepository.getRideSessionUsersFlow(rideSessionId).collect { users ->
+            rideSessionsRepository.getRideSessionUsersFlow(rideSessionId).catch { e ->
+                Log.e("MapViewModel", "getRideSessionUsersFlow error: ${e.message} ")
+            }.collect { users ->
                 val dangerUsers = getDangerUsers(_uiState.value.sessionUserStatus, users)
                 if (dangerUsers.isNotEmpty()) {
                     onEvent(
@@ -283,12 +289,9 @@ class MapViewModel @Inject constructor(
         val oldStatusMap = oldStatuses.associateBy { it.id }
 
         return newStatuses.filter { newUser ->
-            if (newUser.status == RideSessionStatus.DANGER.name) {
-                val oldUser = oldStatusMap[newUser.id]
-                oldUser == null || oldUser.status != RideSessionStatus.DANGER.name
-            } else {
-                false
-            }
+            newUser.id != _uiState.value.myId &&
+                    newUser.status == RideSessionStatus.DANGER.name &&
+                    (oldStatusMap[newUser.id]?.status != RideSessionStatus.DANGER.name)
         }
     }
 
