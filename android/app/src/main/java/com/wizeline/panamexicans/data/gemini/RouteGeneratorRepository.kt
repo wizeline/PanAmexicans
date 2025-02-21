@@ -14,7 +14,8 @@ class RouteGeneratorRepository @Inject constructor(
         prompt: String,
         preferences: List<String>,
         apiKey: String,
-        latLon: Pair<Double, Double>?
+        latLon: Pair<Double, Double>?,
+        hoursAvailable: Int
     ): ChatBotResponse {
         val initialPrompt = Content(
             parts = listOf(
@@ -39,7 +40,7 @@ class RouteGeneratorRepository @Inject constructor(
         )
         val userPrompt = Content(
             parts = listOf(
-                Part(prompt + "additionalData: { startLocation: {lat:${latLon?.first ?: 20.67904}, lon:${latLon?.second ?: -103.355649}}, preferences: ${preferences.ifEmpty { "The best places you know" }}, routeTime: 6h }")
+                Part(prompt + "additionalData: { startLocation: {lat:${latLon?.first ?: 20.67904}, lon:${latLon?.second ?: -103.355649}}, preferences: ${preferences.ifEmpty { "The best places you know" }}, routeTime: ${if (hoursAvailable == 0) 2 else hoursAvailable}h }")
             ),
             role = "user"
         )

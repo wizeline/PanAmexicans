@@ -122,7 +122,7 @@ fun ProfileScreen(
                 )
             }
             WeeklyProgressCard(
-                tasksCompleted = 1,
+                tasksCompleted = 2,
                 totalTasks = 2,
                 weeklyMiles = 10_000,
                 weeklyGoalMiles = 13_000,

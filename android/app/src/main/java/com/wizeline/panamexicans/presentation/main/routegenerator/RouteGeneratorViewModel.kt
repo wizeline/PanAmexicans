@@ -52,6 +52,10 @@ class RouteGeneratorViewModel @Inject constructor(
 
     fun onEvent(event: RouteGeneratorUiEvents) {
         when (event) {
+            is RouteGeneratorUiEvents.OnAvailableHoursChanged -> {
+                _uiState.update { it.copy(availableHours = event.hours.toIntOrNull() ?: 0) }
+            }
+
             is RouteGeneratorUiEvents.OnTakeMeThereClicked -> {
                 viewModelScope.launch {
                     sharedDataRepository.setSelectedRoute(event.waypoints)
@@ -91,6 +95,7 @@ class RouteGeneratorViewModel @Inject constructor(
                     prompt = userMessage,
                     latLon = lastLocation,
                     preferences = preferences,
+                    hoursAvailable = uiState.value.availableHours,
                     apiKey = BuildConfig.GEMINI_API_KEY
                 )
                 val routeImage = response.route?.let { convertWaypointsToImage(it) }
