@@ -19,6 +19,8 @@ import com.wizeline.panamexicans.data.models.UserStatus
 import com.wizeline.panamexicans.data.ridesessions.RideSessionRepository
 import com.wizeline.panamexicans.data.ridesessions.RideSessionStatus
 import com.wizeline.panamexicans.data.userdata.UserDataRepository
+import com.wizeline.panamexicans.utils.calculateDistance
+import com.wizeline.panamexicans.utils.randomEnumValue
 import com.wizeline.panamexicans.utils.toLatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -44,6 +46,17 @@ class MapViewModel @Inject constructor(
 
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
+            locationResult.lastLocation?.speed?.let {
+                locationPreferenceManager.saveSpeed(it)
+            }
+            val lastLocation = _uiState.value.currentLocation
+            val distance = calculateDistance(
+                lastLocation?.latitude,
+                lastLocation?.longitude,
+                locationResult.lastLocation?.latitude,
+                locationResult.lastLocation?.longitude
+            )
+            if (distance == null || distance < 10.0) return
             locationResult.lastLocation?.let { location ->
 
                 locationPreferenceManager.saveLocation(location.latitude, location.longitude)
@@ -55,12 +68,12 @@ class MapViewModel @Inject constructor(
                             id = _uiState.value.myId.orEmpty(),
                             lat = location.latitude,
                             lon = location.longitude,
-                            status = _uiState.value.status
+                            status = randomEnumValue<RideSessionStatus>().name
                         )
                     )
                 }
+                _uiState.update { it.copy(currentLocation = locationResult.lastLocation) }
             }
-            _uiState.update { it.copy(currentLocation = locationResult.lastLocation) }
         }
     }
 

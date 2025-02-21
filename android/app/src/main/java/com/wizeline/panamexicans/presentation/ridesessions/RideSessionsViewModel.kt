@@ -9,7 +9,6 @@ import com.wizeline.panamexicans.data.models.UserStatus
 import com.wizeline.panamexicans.data.ridesessions.RideSessionStatus
 import com.wizeline.panamexicans.data.userdata.UserDataRepository
 import com.wizeline.panamexicans.utils.getRandomCoordinateInSanFrancisco
-import com.wizeline.panamexicans.utils.getRandomLatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
