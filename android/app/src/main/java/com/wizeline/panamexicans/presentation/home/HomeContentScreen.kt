@@ -163,6 +163,7 @@ fun RequestPermissions() {
     val requiredPermissions: MutableList<String> = mutableListOf()
     requiredPermissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
     requiredPermissions.add(Manifest.permission.ACCESS_COARSE_LOCATION)
+    requiredPermissions.add(Manifest.permission.RECORD_AUDIO)
     if (Build.VERSION.SDK_INT >= TIRAMISU) {
         requiredPermissions.add(Manifest.permission.POST_NOTIFICATIONS)
     }
