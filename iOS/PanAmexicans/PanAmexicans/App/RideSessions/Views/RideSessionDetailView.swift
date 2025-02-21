@@ -24,23 +24,23 @@ struct RideSessionDetailView: View {
             Text(session.rideSessionName)
                 .font(.headline)
             Text(session.createdAt.dateValue().formatted(date: .abbreviated, time: .shortened))
-                .font(.subheadline)
+                .font(.caption)
+                .padding(.bottom, 20)
 
             ForEach(sessionUsers, id: \.id) { user in
                 HStack {
                     Label {
                         Text("\(user.firstName) \(user.lastName)")
+                            .font(.headline)
                     } icon: {
-                        Image("person.circle")
-                            .resizable()
-                            .frame(width: 20, height: 20)
+                        Image(systemName: "person.circle")
                             .foregroundStyle(Color.accentColor)
                     }
 
                     Spacer()
                 }
                 .padding(12)
-                .background(Color.secondary)
+                .background(Color.black.opacity(0.3))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
                 .contentShape(Rectangle())
             }
@@ -52,8 +52,8 @@ struct RideSessionDetailView: View {
             } label: {
                 Text("Join")
                     .font(.headline)
+                    .padding(.vertical, 6)
                     .frame(maxWidth: .infinity)
-                    .padding()
             }
             .buttonStyle(.borderedProminent)
         }

@@ -28,12 +28,13 @@ struct TabsView: View {
 
     var body: some View {
         TabView {
-            Tab("Sessions", systemImage: "person") {
+            Tab("Sessions", systemImage: "person.3.fill") {
                 NavigationStack {
                     RideSessionsView()
                         .environmentObject(rideSessionViewModel)
                         .environmentObject(locationManager)
                         .navigationTitle(welcomeMessage)
+                        .toolbarVisibility(.visible, for: .navigationBar)
                         .toolbar {
                             ToolbarItem(placement: .topBarTrailing) {
                                 Button {
@@ -51,7 +52,7 @@ struct TabsView: View {
                     .environmentObject(rideSessionViewModel)
             }
 
-            Tab("Icon", systemImage: "pencil") {
+            Tab("Premium", systemImage: "medal.fill") {
                 IconChangerView()
             }
         }

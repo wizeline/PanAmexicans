@@ -12,18 +12,14 @@ struct RideSessionsView: View {
     @EnvironmentObject var locationManager: LocationManager
 
     var body: some View {
-        VStack {
-            Group {
-                if let session = rideSessionViewModel.currentSession {
-                    ActiveSessionView(session: session)
-                } else {
-                    NoActiveSessionView()
-                }
+        Group {
+            if let session = rideSessionViewModel.currentSession {
+                ActiveSessionView(session: session)
+            } else {
+                NoActiveSessionView()
             }
-            .environmentObject(rideSessionViewModel)
-            .environmentObject(locationManager)
-
-            Spacer()
         }
+        .environmentObject(rideSessionViewModel)
+        .environmentObject(locationManager)
     }
 }

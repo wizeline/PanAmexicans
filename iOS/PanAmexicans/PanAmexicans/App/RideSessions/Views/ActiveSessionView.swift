@@ -19,30 +19,47 @@ struct ActiveSessionView: View {
     let session: RideSession
 
     var body: some View {
-        VStack {
-            Text(session.rideSessionName)
-                .font(.headline)
+        VStack(spacing: 10) {
+            HStack {
+                Text(session.rideSessionName)
+                    .font(.headline)
 
-            Button {
-                onLeave()
-            } label: {
-                Text("Leave")
+                Spacer()
+
+                Button {
+                    onLeave()
+                } label: {
+                    Text("Leave")
+                }
             }
 
             ForEach(rideSessionViewModel.rideSessionUsers, id: \.id) { user in
-                VStack {
-                    Text("User: \(user.firstName)")
-                    Text("Latitude: \(user.lat)")
-                    Text("Longitude: \(user.lon)")
-                    Text("Status: \(user.status)")
+                HStack {
+                    Label {
+                        VStack(alignment: .leading) {
+                            Text("\(user.firstName) \(user.lastName)")
+                                .font(.headline)
+                            Text("\(user.lat), \(user.lon)")
+                                .font(.caption)
+                            Text("Status: \(user.status)")
+                                .font(.caption)
+                        }
+                    } icon: {
+                        Image(systemName: "person.circle")
+                            .foregroundStyle(Color.accentColor)
+                    }
+
+                    Spacer()
                 }
-                .padding()
-                .background(Color.secondary.opacity(0.2))
+                .padding(12)
+                .background(Color.gray.opacity(0.2))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
-                .padding()
-                .frame(maxWidth: .infinity)
+                .contentShape(Rectangle())
             }
+
+            Spacer()
         }
+        .padding()
         .redacted(reason: isLoading ? .placeholder : [])
         .onReceive(locationManager.$lastKnownLocation) { _ in
             updateSession()
