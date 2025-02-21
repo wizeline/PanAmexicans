@@ -19,8 +19,8 @@ import com.wizeline.panamexicans.data.models.UserStatus
 import com.wizeline.panamexicans.data.ridesessions.RideSessionRepository
 import com.wizeline.panamexicans.data.ridesessions.RideSessionStatus
 import com.wizeline.panamexicans.data.userdata.UserDataRepository
+import com.wizeline.panamexicans.presentation.crashdetector.CrashDetector
 import com.wizeline.panamexicans.utils.calculateDistance
-import com.wizeline.panamexicans.utils.randomEnumValue
 import com.wizeline.panamexicans.utils.toLatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -37,12 +37,18 @@ class MapViewModel @Inject constructor(
     private val rideSessionsRepository: RideSessionRepository,
     private val userDataRepository: UserDataRepository,
     private val directionsRepository: DirectionsRepository,
-    private val locationPreferenceManager: LocationPreferenceManager
+    private val locationPreferenceManager: LocationPreferenceManager,
+    private val crashDetector: CrashDetector
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MapUiState())
     val uiState: StateFlow<MapUiState> = _uiState.asStateFlow()
     private var rideSessionUsersJob: Job? = null
+
+    init {
+        collectCrashInformation()
+        crashDetector.startListening()
+    }
 
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
@@ -68,11 +74,32 @@ class MapViewModel @Inject constructor(
                             id = _uiState.value.myId.orEmpty(),
                             lat = location.latitude,
                             lon = location.longitude,
-                            status = randomEnumValue<RideSessionStatus>().name
+                            status = _uiState.value.status
                         )
                     )
                 }
                 _uiState.update { it.copy(currentLocation = locationResult.lastLocation) }
+            }
+        }
+    }
+
+    private fun collectCrashInformation() {
+        viewModelScope.launch {
+            crashDetector.crashState.collect { crashState ->
+                if (crashState.isCrashRisk.not()) return@collect
+                _uiState.value.apply {
+                    if (sessionJointId == null || currentLocation?.latitude == null || currentLocation?.longitude == null) return@collect
+                    rideSessionsRepository.updateRideSessionStatus(
+                        sessionJointId,
+                        UserStatus(
+                            _uiState.value.firstName, _uiState.value.lastName,
+                            id = _uiState.value.myId.orEmpty(),
+                            lat = currentLocation.latitude,
+                            lon = currentLocation.longitude,
+                            status = RideSessionStatus.DANGER.name
+                        )
+                    )
+                }
             }
         }
     }
@@ -242,6 +269,7 @@ class MapViewModel @Inject constructor(
         leaveCurrentSession()
         super.onCleared()
         fusedLocationClient.removeLocationUpdates(locationCallback)
+        crashDetector.stopListening()
     }
 
     private fun leaveCurrentSession() {
