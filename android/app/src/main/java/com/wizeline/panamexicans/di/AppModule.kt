@@ -22,7 +22,6 @@ import com.wizeline.panamexicans.presentation.crashdetector.CrashDetector
 import com.wizeline.panamexicans.presentation.crashdetector.CrashDetectorManager
 import com.wizeline.panamexicans.presentation.widget.PanAmexWidgetUpdater
 import com.wizeline.panamexicans.presentation.widget.PanAmexWidgetUpdaterImpl
-import com.wizeline.panamexicans.presentation.widget.WidgetMockRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -73,11 +72,6 @@ object AppModule {
     @Provides
     fun providesLocationPreferenceManager(@ApplicationContext context: Context):
             SharedDataPreferenceManager = SharedDataPreferenceManager(context)
-
-    @Singleton
-    @Provides
-    fun providesWidgetRepository(): WidgetMockRepository =
-        WidgetMockRepository()
 
     @Singleton
     @Provides
